@@ -18,6 +18,9 @@ require('lazy').setup({
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
 
+  -- Install emmet-vim
+  { 'mattn/emmet-vim' },
+
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
@@ -78,12 +81,12 @@ require('lazy').setup({
 
   -- Language Server Protocol.
   {
-      'VonHeikemen/lsp-zero.nvim',
-      dependencies = {
-          { 'neovim/nvim-lspconfig' },             -- Required
-          { 'williamboman/mason.nvim' },           -- Optional
-          { 'williamboman/mason-lspconfig.nvim' }, -- Optional
-      },
+    'VonHeikemen/lsp-zero.nvim',
+    dependencies = {
+      { 'neovim/nvim-lspconfig' },             -- Required
+      { 'williamboman/mason.nvim' },           -- Optional
+      { 'williamboman/mason-lspconfig.nvim' }, -- Optional
+    },
   },
 
   {
