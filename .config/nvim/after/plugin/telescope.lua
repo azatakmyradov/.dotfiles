@@ -1,4 +1,5 @@
 local actions = require('telescope.actions')
+local telescope_builtin = require("telescope.builtin")
 
 require('telescope').setup {
   defaults = {
@@ -17,10 +18,28 @@ require('telescope').setup {
       },
     },
   },
+  pickers = {
+    find_files = {
+      hidden = true,
+    },
+    buffers = {
+      previewer = false,
+      layout_config = {
+        width = 80,
+      },
+    },
+    oldfiles = {
+      prompt_title = 'History',
+    },
+    lsp_references = {
+      previewer = false,
+    },
+  },
 }
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
+pcall(require('telescope').load_extension, 'live_grep_args')
 
 -- Telescope live_grep in git root
 -- Function to find the git root directory based on the current buffer's path
@@ -50,7 +69,7 @@ end
 local function live_grep_git_root()
   local git_root = find_git_root()
   if git_root then
-    require('telescope.builtin').live_grep {
+    telescope_builtin.live_grep {
       search_dirs = { git_root },
     }
   end
@@ -59,25 +78,59 @@ end
 vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
 
 -- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+vim.keymap.set('n', '<leader>?', telescope_builtin.oldfiles, { desc = '[?] Find recently opened files' })
+vim.keymap.set('n', '<leader><space>', telescope_builtin.buffers, { desc = '[ ] Find existing buffers' })
 vim.keymap.set('n', '<leader>/', function()
   -- You can pass additional configuration to telescope to change theme, layout, etc.
-  require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+  telescope_builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
     winblend = 10,
     previewer = false,
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
 
-vim.keymap.set('n', '<leader>z', require('telescope.builtin').builtin, { desc = '[S]earch [S]elect Telescope' })
+vim.keymap.set('n', '<leader>z', telescope_builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
 
-vim.keymap.set('n', '<leader>f',
-  [[<cmd>lua require('telescope.builtin').find_files({ file_ignore_patterns = { "node_modules", "vendor", ".git", "storage/clockwork" }})<CR>]])
-vim.keymap.set('n', '<leader>F',
-  [[<cmd>lua require('telescope.builtin').find_files({ no_ignore = true, prompt_title = 'All Files' })<CR>]])
-vim.keymap.set('n', '<leader>b', [[<cmd>lua require('telescope.builtin').buffers()<CR>]])
-vim.keymap.set('n', '<leader>g',
-  [[<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args({ file_ignore_patterns = { "node_modules", "vendor", ".git" }, prompt_title = 'Search characters...' })<CR>]])
-vim.keymap.set('n', '<leader>G', [[<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>]])
-vim.keymap.set('n', '<leader>h', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]])
-vim.keymap.set('n', '<leader>s', [[<cmd>lua require('telescope.builtin').lsp_document_symbols()<CR>]])
+vim.keymap.set('n', '<leader>f', function()
+  telescope_builtin.find_files({
+    file_ignore_patterns = { "node_modules", "vendor", ".git", "storage/clockwork" },
+    prompt_title = '[F]ind [F]iles'
+  })
+end)
+
+vim.keymap.set('n', '<leader>F', function()
+  telescope_builtin.find_files({
+    no_ignore = true,
+    prompt_title = '[F]ind [A]ll Files'
+  })
+end)
+
+vim.keymap.set('n', '<leader>b', function()
+  telescope_builtin.buffers({
+    prompt_title = '[B]uffers'
+  })
+end)
+
+vim.keymap.set('n', '<leader>g', function()
+  require('telescope').extensions.live_grep_args.live_grep_args({
+    file_ignore_patterns = { "node_modules", "vendor", ".git" },
+    prompt_title = '[G]rep characters...'
+  })
+end)
+
+vim.keymap.set('n', '<leader>G', function()
+  require('telescope').extensions.live_grep_args.live_grep_args({
+    prompt_title = '[G]rep [A]ll'
+  })
+end)
+
+vim.keymap.set('n', '<leader>h', function()
+  telescope_builtin.oldfiles({
+    prompt_title = '[H]istory'
+  })
+end)
+
+vim.keymap.set('n', '<leader>s', function()
+  telescope_builtin.lsp_document_symbols({
+    prompt_title = '[S]ymbols'
+  })
+end)
