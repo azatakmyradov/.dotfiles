@@ -151,3 +151,9 @@ if [ -f "$HOME/"'.platformsh/shell-config.rc' ]; then . "$HOME/"'.platformsh/she
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Personal scripts
+export PATH="$HOME/.local/bin:$PATH"
+
+# tmux sessionizer
+bindkey -s ^f "tmux-sessionizer\n"
