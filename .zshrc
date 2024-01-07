@@ -155,5 +155,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # Personal scripts
 export PATH="$HOME/.local/bin:$PATH"
 
-# tmux sessionizer
+# tmux
 bindkey -s ^f "tmux-sessionizer\n"
+bindkey -s ^a "tmux a\n"
