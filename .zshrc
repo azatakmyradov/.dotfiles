@@ -158,3 +158,4 @@ export PATH="$HOME/.local/bin:$PATH"
 # tmux
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^a "tmux a\n"
+bindkey -s ^x "tmux-cht.sh\n"
