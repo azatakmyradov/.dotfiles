@@ -7,6 +7,11 @@ languages=$(echo "$language_list" | tr " " "\n")
 core_utils=$(echo "$utils_list" | tr " " "\n")
 selected=$(echo -e "$languages\n$core_utils" | fzf)
 
+if [[ "${#selected}" -eq 0 ]]; then
+    echo "Input not received"
+    exit 0
+fi
+
 read -p "Enter query: " query
 
 if echo "$languages" | grep -qs $selected; then
