@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+git_log=$(git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit)
+
+selected=$(echo "$git_log" | fzf | xargs)
+
+if [[ "${#selected}" -eq 0 ]]; then
+    echo "Input not received"
+    exit 0
+fi
+
+git_hash=("${selected[@]:2:7}")
+
+echo -n "$git_hash" | xclip -selection clipboard
