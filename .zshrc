@@ -155,6 +155,9 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # Personal scripts
 export PATH="$HOME/.local/bin:$PATH"
 
+# Kitty
+export PATH="$HOME/.local/kitty.app/bin:$PATH"
+
 # tmux
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^a "tmux a\n"
