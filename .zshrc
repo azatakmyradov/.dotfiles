@@ -164,3 +164,6 @@ bindkey -s ^a "tmux a\n"
 bindkey -s ^x "tmux-cht.sh\n"
 
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+# disable caps lock
+setxkbmap -option ctrl:nocaps
