@@ -158,6 +158,9 @@ export PATH="$HOME/.local/bin:$PATH"
 # Kitty
 export PATH="$HOME/.local/kitty.app/bin:$PATH"
 
+# Composer Global
+export PATH="/home/azatakmyradov/.config/composer/vendor/bin:$PATH"
+
 # tmux
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^a "tmux a\n"
