@@ -5,6 +5,7 @@ rm -rf ~/.config/nvim
 rm -rf ~/.config/phpactor
 rm -rf ~/.config/i3
 rm -rf ~/.config/i3status
+rm -rf ~/.config/redshift.conf
 rm -rf ~/.scripts
 rm -rf ~/.hushlogin
 rm -rf ~/.zsh_aliases
@@ -12,3 +13,6 @@ rm -rf ~/.zshrc
 rm -rf ~/.tmux.conf
 
 stow .
+
+rm -rf ~/.config/redshift.conf
+cp .config/redshift.conf ~/.config/redshift.conf
