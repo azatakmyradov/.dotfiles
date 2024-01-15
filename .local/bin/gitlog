@@ -11,4 +11,8 @@ fi
 
 git_hash=("${selected[@]:2:7}")
 
-echo -n "$git_hash" | xclip -selection clipboard
+if [[ $(uname) == "Darwin" ]]; then
+    echo -n "$git_hash" | pbcopy
+else
+    echo -n "$git_hash" | xclip -selection clipboard
+fi

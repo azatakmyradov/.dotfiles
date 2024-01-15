@@ -1,0 +1,6 @@
+#!/bin/bash
+
+./ubuntu
+
+rm -rf ~/.config/i3
+rm -rf ~/.config/i3status

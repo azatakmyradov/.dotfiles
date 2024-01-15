@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
 git pull origin main
-stow -D .
-stow .
+
+if [[ $(uname) == "Darwin" ]]; then
+    ./mac
+else
+    ./ubuntu
+fi 

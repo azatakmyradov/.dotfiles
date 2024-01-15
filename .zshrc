@@ -163,7 +163,9 @@ bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^a "tmux a\n"
 bindkey -s ^x "tmux-cht.sh\n"
 
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-# disable caps lock
-setxkbmap -option ctrl:nocaps
+# disable caps lock except on macos
+if [[ $(uname) != "Darwin" ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    setxkbmap -option ctrl:nocaps
+fi
