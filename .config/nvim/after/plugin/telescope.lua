@@ -134,3 +134,5 @@ vim.keymap.set('n', '<leader>s', function()
     prompt_title = '[S]ymbols'
   })
 end)
+
+vim.keymap.set("n", "<leader>t", ":TodoTelescope<CR>")

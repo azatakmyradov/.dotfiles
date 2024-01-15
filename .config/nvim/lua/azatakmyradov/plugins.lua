@@ -252,5 +252,17 @@ require('lazy').setup({
     config = function()
       require('nvim-ts-autotag').setup()
     end
+  },
+
+  -- Icons for files
+  { "nvim-tree/nvim-web-devicons" },
+
+  -- ToDo Comments
+  {
+    "folke/todo-comments.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("todo-comments").setup {}
+    end
   }
 }, {})
