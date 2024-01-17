@@ -172,3 +172,5 @@ if [[ $(uname) != "Darwin" ]]; then
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     setxkbmap -option ctrl:nocaps
 fi
+
+export TERM=xterm-256color
