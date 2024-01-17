@@ -235,6 +235,9 @@ bindsym $mod+m move workspace to output left
 # Start Redshift
 exec --no-startup-id redshift-gtk
 
+# Set monitor resolution and refresh rate
+exec xrandr --output DP-0 --mode 2560x1440 --rate 240.00
+
 # Suspend
 set $Locker i3lock && sleep 1
 
