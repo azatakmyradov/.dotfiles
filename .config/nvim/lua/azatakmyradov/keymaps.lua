@@ -116,6 +116,21 @@ vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR>")
 
 vim.keymap.set("n", "<leader>'r", ":LspRestart<CR>")
 
+-- Save file
 vim.keymap.set("n", "<C-s>", ":w<CR>")
 vim.keymap.set("i", "<C-s>", "<Esc>:w<CR>")
 vim.keymap.set("v", "<C-s>", "<Esc>:w<CR>")
+
+-- Run file if file type is rust or typescript
+vim.keymap.set("n", "<leader>r", function()
+    if vim.bo.filetype == "rust" then
+        vim.cmd("w")
+        vim.cmd("!cargo run")
+    elseif vim.bo.filetype == "typescript" or vim.bo.filetype == "javascript" then
+        vim.cmd("w")
+        vim.cmd('!bun %')
+    elseif vim.bo.filetype == "php" then
+        vim.cmd("w")
+        vim.cmd("!php %")
+    end
+end)
