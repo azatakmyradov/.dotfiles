@@ -264,5 +264,8 @@ require('lazy').setup({
     config = function()
       require("todo-comments").setup {}
     end
-  }
+  },
+
+  -- NeoDev
+  { "folke/neodev.nvim", opts = {} }
 }, {})
