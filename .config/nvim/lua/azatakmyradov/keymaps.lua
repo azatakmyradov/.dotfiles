@@ -114,7 +114,12 @@ vim.keymap.set("n", "<C-n>", [[<cmd>lua require('harpoon.ui').nav_file(3)<CR>]])
 -- UndoTree
 vim.keymap.set("n", "<leader>u", ":UndotreeToggle<CR>")
 
+-- Restart LSP
 vim.keymap.set("n", "<leader>'r", ":LspRestart<CR>")
+
+-- Vim Fugitive
+vim.keymap.set("n", "<leader>'d", ":Gdiffsplit<CR>")
+vim.keymap.set("n", "<leader>'g", ":Git<CR>")
 
 -- Save file
 vim.keymap.set("n", "<C-s>", ":w<CR>")

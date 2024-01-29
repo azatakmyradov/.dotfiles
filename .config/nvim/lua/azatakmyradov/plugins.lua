@@ -12,8 +12,12 @@ require('lazy').setup({
   },
 
   -- Git related plugins
-  'tpope/vim-fugitive',
-  'tpope/vim-rhubarb',
+  {
+    'tpope/vim-fugitive',
+    dependencies = {
+      'tpope/vim-rhubarb',
+    }
+  },
 
   -- Install emmet-vim
   { 'mattn/emmet-vim' },
