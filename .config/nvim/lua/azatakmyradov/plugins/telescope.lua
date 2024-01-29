@@ -1,7 +1,6 @@
 return {
     -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
-    branch = '0.1.x',
     dependencies = {
         'nvim-lua/plenary.nvim',
         'nvim-telescope/telescope-live-grep-args.nvim',
@@ -56,6 +55,7 @@ return {
         -- Enable telescope fzf native, if installed
         pcall(require('telescope').load_extension, 'fzf')
         pcall(require('telescope').load_extension, 'live_grep_args')
+        pcall(require('telescope').load_extension, 'git_worktree')
 
         -- Telescope live_grep in git root
         -- Function to find the git root directory based on the current buffer's path

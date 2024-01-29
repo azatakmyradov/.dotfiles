@@ -111,5 +111,8 @@ return {
     { "folke/neodev.nvim" },
 
     -- Trouble
-    { "folke/trouble.nvim" }
+    { "folke/trouble.nvim" },
+
+    -- Git Worktree
+    { "ThePrimeagen/git-worktree.nvim" }
 }
