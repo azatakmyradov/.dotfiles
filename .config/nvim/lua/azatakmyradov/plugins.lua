@@ -1,4 +1,5 @@
 require('lazy').setup({
+
   -- the colorscheme should be available when starting Neovim
   {
     'rose-pine/neovim',
@@ -267,5 +268,8 @@ require('lazy').setup({
   },
 
   -- NeoDev
-  { "folke/neodev.nvim", opts = {} }
+  { "folke/neodev.nvim", opts = {} },
+
+  -- Trouble
+  { "folke/trouble.nvim" }
 }, {})
