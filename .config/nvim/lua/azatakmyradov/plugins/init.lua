@@ -1,4 +1,10 @@
 return {
+    {
+        "nvim-lua/plenary.nvim",
+        priority = 1000,
+        name = "plenary"
+    },
+
     -- Git related plugins
     {
         'tpope/vim-fugitive',
@@ -101,7 +107,9 @@ return {
     -- ToDo Comments
     {
         "folke/todo-comments.nvim",
-        dependencies = { "nvim-lua/plenary.nvim" },
+        dependencies = {
+            "plenary"
+        },
         config = function()
             require("todo-comments").setup {}
         end
@@ -114,5 +122,10 @@ return {
     { "folke/trouble.nvim" },
 
     -- Git Worktree
-    { "ThePrimeagen/git-worktree.nvim" }
+    {
+        "ThePrimeagen/git-worktree.nvim",
+        dependencies = {
+            "plenary"
+        }
+    }
 }
