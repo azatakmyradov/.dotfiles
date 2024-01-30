@@ -1,6 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+if [[ -z $STOW_FOLDERS ]]; then
+    STOW_FOLDERS="bin,kitty,nvim,tmux,zsh,universal"
+fi
 
-./ubuntu
+if [[ -z $DOTFILES ]]; then
+    DOTFILES=$HOME/.dotfiles
+fi
 
-rm -rf ~/.config/i3
-rm -rf ~/.config/i3status
+STOW_FOLDERS=$STOW_FOLDERS DOTFILES=$DOTFILES $DOTFILES/install

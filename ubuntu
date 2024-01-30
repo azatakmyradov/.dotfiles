@@ -1,18 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+if [[ -z $STOW_FOLDERS ]]; then
+    STOW_FOLDERS="bin,i3,kitty,nvim,redshift,tmux,zsh,universal"
+fi
 
-rm -rf ~/.config/kitty
-rm -rf ~/.config/nvim
-rm -rf ~/.config/phpactor
-rm -rf ~/.config/i3
-rm -rf ~/.config/i3status
-rm -rf ~/.config/redshift.conf
-rm -rf ~/.scripts
-rm -rf ~/.hushlogin
-rm -rf ~/.zsh_aliases
-rm -rf ~/.zshrc
-rm -rf ~/.tmux.conf
+if [[ -z $DOTFILES ]]; then
+    DOTFILES=$HOME/.dotfiles
+fi
 
-stow .
-
-rm -rf ~/.config/redshift.conf
-cp .config/redshift.conf ~/.config/redshift.conf
+STOW_FOLDERS=$STOW_FOLDERS DOTFILES=$DOTFILES $DOTFILES/install
