@@ -1,0 +1,3 @@
+[submodule ".config/init.lua"]
+	path = .config/init.lua
+	url = git@github.com:azatakmyradov/init.lua.git
