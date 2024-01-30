@@ -30,3 +30,7 @@ vim.opt.signcolumn = "yes"
 vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
+
+vim.g.netrw_browser_split = 0
+vim.g.netrw_banner = 0
+vim.g.netrw_winsize = 0

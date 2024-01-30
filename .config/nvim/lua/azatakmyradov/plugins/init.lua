@@ -5,6 +5,9 @@ return {
         name = "plenary"
     },
 
+    -- NeoDev
+    { "folke/neodev.nvim" },
+
     -- Git related plugins
     {
         'tpope/vim-fugitive',
@@ -114,9 +117,6 @@ return {
             require("todo-comments").setup {}
         end
     },
-
-    -- NeoDev
-    { "folke/neodev.nvim" },
 
     -- Trouble
     { "folke/trouble.nvim" },
