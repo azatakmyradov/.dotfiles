@@ -153,7 +153,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Personal scripts
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/scripts:$PATH"
 
 # Kitty
 export PATH="$HOME/.local/kitty.app/bin:$PATH"
