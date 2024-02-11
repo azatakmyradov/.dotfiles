@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+devices=$(bluetoothctl devices)
+
+if [[ "${#devices}" -eq 0 ]]; then
+    echo "There are no devices paired"
+    exit 0
+fi
+
+choice=$(echo $devices | fzf)
+
+if [[ -z "$choice" ]]; then
+    echo "No device selected"
+    exit 0
+fi
+
+mac=$(echo $choice | awk '{print $2}')
+
+while getopts "d" opt; do
+    case $opt in
+        d)
+            bluetoothctl disconnect $mac
+            exit 0
+            ;;
+    esac
+done
+
+bluetoothctl connect $mac
