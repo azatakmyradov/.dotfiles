@@ -15,4 +15,4 @@ bold_italic = { family = "JetbrainsMono Nerd Font", style = "Bold Italic" }
 size = 15.0
 
 [colors.primary]
-background = "#303446"
+background = "#1A1B26"
