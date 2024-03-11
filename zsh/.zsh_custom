@@ -1,0 +1,38 @@
+# [Local vendor and node_modules]
+export PATH="./vendor/bin/:$PATH"
+export PATH="./node_modules/.bin/:$PATH"
+
+# [Bun]
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# [Personal scripts]
+export PATH="$HOME/.local/scripts:$PATH"
+
+# [Composer Global]
+export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+
+# [Global Composer Path]
+export PATH="$HOME/.composer/vendor/bin:$PATH"
+
+# [tmux]
+bindkey -s ^f "tmux-sessionizer\n"
+bindkey -s ^a "tmux a\n"
+bindkey -s ^x "tmux-cht.sh\n"
+
+# [Linux or Mac]
+if [[ $(uname) != "Darwin" ]]; then
+    # [Linuxbrew]
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+    # [Disable caps lock and make it control key]
+    setxkbmap -option ctrl:nocaps
+elif [[ $(uname) == "Darwin" ]]; then
+    # [DBNgin mac only]
+    export PATH="/Users/Shared/DBngin/redis/7.0.0/bin:$PATH"
+    export PATH="/Users/Shared/DBngin/mysql/8.0.33/bin:$PATH"
+fi
+
+# [Set terminal to xterm-256color for tmux to work properly]
+export TERM=xterm-256color
