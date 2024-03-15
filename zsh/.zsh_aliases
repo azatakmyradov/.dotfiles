@@ -1,22 +1,13 @@
-alias art="php artisan"
-# alias _="docker-compose run --rm"
-alias tinker="art tinker"
-alias migrate="art migrate"
-alias routes="art route:list"
-alias fresh="art migrate:fresh"
+# [Laravel]
+alias a="php artisan"
+alias tinker="php artisan tinker"
+alias migrate="php artisan migrate"
+alias routes="php artisan route:list"
+alias fresh="php artisan migrate:fresh"
 alias phpunit="./vendor/bin/phpunit"
-alias pat="php artisan test"
-alias tfs="php artisan test && php artisan migrate:fresh --seed"
-alias sf="php bin/console"
-# alias docker_clean="docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images -aq)"
-alias f="tmux-sessionizer"
+alias seed="php artisan db:seed"
 
-alias wstorm="open -na \"WebStorm.app\""
-
-alias pip="python3 -m pip"
-
-alias connect_server="ssh -i ~/.ssh/id_akmyradov root@167.99.157.85"
-
+# [Git]
 alias nah="git reset --hard;git clean -df;"
 alias gl="gitlog"
 alias glr="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
@@ -26,17 +17,11 @@ alias gc="git commit -m"
 alias gp="git push"
 alias gs="git status"
 
-alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
-
-# file manipulations
-
-# servers
+# [Servers]
 alias sshcodefrenzies="ssh root@159.223.135.143"
 alias sshakmyradov="ssh root@167.99.157.85"
+alias connect_server="ssh -i ~/.ssh/id_akmyradov root@167.99.157.85"
 
-# vim
+# [Vim aliases]
 alias vim=nvim
 alias vi=nvim
-
-# helpful
-alias getip="ifconfig | grep \"inet\""
