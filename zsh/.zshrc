@@ -1,4 +1,8 @@
+# Enable Starship
 eval "$(starship init zsh)"
+
+# Add zsh-autosuggestions
+source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then

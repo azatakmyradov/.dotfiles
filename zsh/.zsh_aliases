@@ -16,6 +16,8 @@ alias gaa="git add ."
 alias gc="git commit -m"
 alias gp="git push"
 alias gs="git status"
+alias gd="git diff"
+alias gds="git diff --staged"
 
 # [Servers]
 alias sshcodefrenzies="ssh root@159.223.135.143"
