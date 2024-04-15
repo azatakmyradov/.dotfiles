@@ -2,3 +2,5 @@
 **/.DS_Store
 /nvim/lazy-lock.json
 .config/nvim/lazy-lock.json
+bin/.local/share
+bin/.local/state
