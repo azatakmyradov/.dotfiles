@@ -27,3 +27,7 @@ alias connect_server="ssh -i ~/.ssh/id_akmyradov root@167.99.157.85"
 # [Vim aliases]
 alias vim=nvim
 alias vi=nvim
+
+# [ls aliases]
+alias l="ls -l --color"
+alias ll="ls -l --color"
