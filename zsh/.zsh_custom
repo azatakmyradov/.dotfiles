@@ -16,6 +16,9 @@ export PATH="$HOME/.config/composer/vendor/bin:$PATH"
 # [Global Composer Path]
 export PATH="$HOME/.composer/vendor/bin:$PATH"
 
+# [Flutter]
+export PATH="$HOME/development/flutter/bin:$PATH"
+
 # [tmux]
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^a "tmux a\n"
