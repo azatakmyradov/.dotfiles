@@ -31,3 +31,16 @@ alias vi=nvim
 # [ls aliases]
 alias l="ls -l --color"
 alias ll="ls -l --color"
+
+# linux copy
+alias pbcopy='xclip -selection clipboard'
+
+# Easily make a web app
+make_web_app ()
+{
+    nativefier --name "$1" \
+        --platform linux --arch x64 \
+        --width 1024 --height 768 \
+        --tray --disable-dev-tools \
+        --single-instance $2
+}
