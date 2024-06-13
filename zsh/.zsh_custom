@@ -19,6 +19,9 @@ export PATH="$HOME/.composer/vendor/bin:$PATH"
 # [Flutter]
 export PATH="$HOME/development/flutter/bin:$PATH"
 
+# [Golang]
+export PATH="$HOME/go/bin:$PATH"
+
 # [tmux]
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^a "tmux a\n"
