@@ -19,7 +19,7 @@ bold_italic = { family = "JetbrainsMono Nerd Font", style = "Bold Italic" }
 size = 15.0
 
 [colors.primary]
-background = "#282828"
+background = "#222436"
 
 [env]
 TERM = "xterm-256color"
