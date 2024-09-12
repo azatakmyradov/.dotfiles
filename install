@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 if [[ -z $STOW_FOLDERS ]]; then
-        STOW_FOLDERS="zsh"
+        STOW_FOLDERS="zsh,other"
         STOW_LINUX=""
         STOW_MAC=""
     if [[ $(uname) != "Darwin" ]]; then
