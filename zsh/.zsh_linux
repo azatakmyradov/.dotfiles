@@ -1,0 +1,5 @@
+# [Linuxbrew]
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+# [Disable caps lock and make it control key]
+setxkbmap -option ctrl:nocaps
