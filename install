@@ -16,7 +16,7 @@ echo $STOW_FOLDERS
 ### CHANGE THIS LOCATION
 ###
 if [[ -z $DOTFILES ]]; then
-    DOTFILES=$HOME/dot
+    DOTFILES=$HOME/.dotfiles
 fi
 
 pushd $DOTFILES
