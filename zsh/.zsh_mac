@@ -4,13 +4,6 @@ export PATH="/Users/Shared/DBngin/mysql/8.0.33/bin:$PATH"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-# Herd injected PHP binary.
-export PATH="/Users/azatakmyradov/Library/Application Support/Herd/bin/":$PATH
-
-
-# Herd injected PHP 8.3 configuration.
-export HERD_PHP_83_INI_SCAN_DIR="/Users/azatakmyradov/Library/Application Support/Herd/config/php/83/"
-
 # pnpm
 export PNPM_HOME="/Users/azatakmyradov/Library/pnpm"
 case ":$PATH:" in
