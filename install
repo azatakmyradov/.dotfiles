@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 if [[ -z $STOW_FOLDERS ]]; then
         STOW_FOLDERS="zsh,other,tmux,alacritty,starship,bin"
-        STOW_LINUX=",i3,redshift"
+        STOW_LINUX=",i3,redshift,other_linux"
         STOW_MAC=""
     if [[ $(uname) != "Darwin" ]]; then
         STOW_FOLDERS+=$STOW_LINUX
@@ -27,3 +27,7 @@ do
     stow $folder --adopt
 done
 popd
+
+if [[ $(uname) != "Darwin" ]]; then
+    xrdb -merge ~/.Xresources
+fi
