@@ -2,7 +2,7 @@
 if [[ -z $STOW_FOLDERS ]]; then
         STOW_FOLDERS="zsh,other,tmux,starship,bin,wezterm"
         STOW_LINUX=",i3,redshift,other_linux"
-        STOW_MAC=""
+        STOW_MAC=",yabai_skhd"
     if [[ $(uname) != "Darwin" ]]; then
         STOW_FOLDERS+=$STOW_LINUX
     elif [[ $(uname) == "Darwin" ]]; then
