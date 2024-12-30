@@ -12,7 +12,7 @@ config.default_prog = { "/usr/bin/zsh", "-l" }
 -- For example, changing the color scheme:
 config.color_scheme = "Tokyo Night"
 config.font = wezterm.font("OperatorMono Nerd Font")
-config.font_size = 13
+config.font_size = 17
 config.line_height = 1.2
 config.enable_tab_bar = false
 
