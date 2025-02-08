@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+sudo apt install tmux wireshark fzf kdenlive gimp xclip screenkey tldr ripgrep shutter i3

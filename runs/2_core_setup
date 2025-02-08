@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+sudo apt update
+
+# Install Core libraries
+sudo apt install build-essential cmake pkg-config libpthread-stubs0-dev pkg-config libfreetype6-dev libfontconfig1-dev libxcb-xfixes0-dev libxkbcommon-dev python3
+
+sudo apt install lua5.1 unzip libtool libtool-bin gettext fzf wget
+
+sudo apt install curl htop lsof ccache ninja-build python3-pip dconf-editor nvidia-settings pavucontrol moreutils clangd
+
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Install Brew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

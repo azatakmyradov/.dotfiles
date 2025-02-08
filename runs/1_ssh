@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+git clone -b main https://github.com/azatakmyradov/ansible $HOME/personal/ansible
+
+sudo apt install ansible
+
+cd $HOME/personal/ansible
+
+ansible-playbook local.yml --ask-become-pass --ask-vault-pass --tags ssh

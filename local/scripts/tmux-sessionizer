@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# This file is to save the last session name
+temp_data="/tmp/tmux-sessionizer_last_session"
+
+# If there is only one argument and it is 'last_session', then use the last session
+if [[ $# -eq 1 ]]; then
+    if [[ $1 == 'last_session' ]]; then
+        selected=$(cat $temp_data)
+    else
+        selected=$1
+    fi
+else
+    selected=$(find ~ ~/personal ~/work ~/plugins -mindepth 1 -maxdepth 1 -type d | fzf)
+fi
+
+if [[ -z $selected ]]; then
+    exit 0
+fi
+
+selected_name=$(basename "$selected" | tr . _)
+tmux_running=$(pgrep tmux)
+
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    tmux new-session -s $selected_name -c $selected
+    exit 0
+fi
+
+# Save the current session name
+current_session=$(tmux display-message -p '#S')
+echo $current_session > $temp_data
+
+if ! tmux has-session -t=$selected_name 2> /dev/null; then
+    tmux new-session -ds $selected_name -c $selected
+fi
+
+tmux switch-client -t $selected_name
