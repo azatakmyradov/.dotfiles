@@ -67,8 +67,7 @@ ctrl + alt - q : yabai --stop-service
 ctrl + alt - s : yabai --start-service
 ctrl + alt - r : yabai --restart-service
 
-alt - return : open -a /Applications/WezTerm.app
-shift + alt - return : open -a "/Applications/Google Chrome.app"
-hyper - w : open -a "/Users/azatakmyradov/Applications/Your work - JIRA.app"
-hyper - t : open -a "/Applications/Microsoft Teams.app"
+alt - return : open -a /Applications/Ghostty.app
+shift + alt - return : open -a "/Applications/Zen Browser.app"
+hyper - s : open -a "/Applications/Slack.app"
 hyper - m : open -a "/Applications/Microsoft Outlook.app"
