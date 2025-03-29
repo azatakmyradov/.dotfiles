@@ -167,6 +167,9 @@ vim.keymap.set("n", "<leader>tc", function()
 	end
 end)
 
+-- Show error float
+vim.keymap.set("n", "<leader>of", ":lua vim.diagnostic.open_float()<CR>")
+
 -- [LSP Keymaps]
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("dotfiles-lsp-attach", { clear = true }),
