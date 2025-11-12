@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# [ Install yay ]
+sudo pacman -S --needed git base-devel
+rm -rf /tmp/yay-repo
+git clone https://aur.archlinux.org/yay.git /tmp/yay-repo
+cd /tmp/yay-repo
+makepkg -si
+yay -Syu

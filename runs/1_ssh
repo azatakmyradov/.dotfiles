@@ -2,7 +2,7 @@
 
 git clone -b main https://github.com/azatakmyradov/ansible $HOME/personal/ansible
 
-sudo apt install ansible
+sudo pacman -S ansible
 
 cd $HOME/personal/ansible
 

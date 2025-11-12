@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-sudo apt install zsh
-
-sudo chsh -s $(which zsh)
-
-curl -sS https://starship.rs/install.sh | sh -s -- -y
-
-git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.zsh/zsh-autosuggestions

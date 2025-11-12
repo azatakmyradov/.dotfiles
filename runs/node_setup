@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-brew install node
-
-npm install -g  eslint typescript-language-server typescript ts-node
