@@ -8,7 +8,28 @@ if [[ $# -eq 1 ]]; then
     if [[ $1 == 'last_session' ]]; then
         selected=$(cat $temp_data)
     else
-        selected=$1
+		target_dir=""
+
+        # Check if the path itself is the worktree/git dir
+        if [[ -d "$1/worktrees" || -d "$1/objects" ]]; then
+            target_dir="$1"
+        # Check if the parent of the path is the worktree/git dir
+        elif [[ -d "$1/../worktrees" || -d "$1/../objects" ]]; then
+            target_dir=$(realpath "$1/..")
+        fi
+
+        if [[ -n "$target_dir" ]]; then
+            selected=$(find "$target_dir" -mindepth 1 -maxdepth 1 -type d \
+                -not -name "hooks" \
+                -not -name "info" \
+                -not -name "objects" \
+                -not -name "refs" \
+                -not -name "logs" \
+                -not -name "worktrees" | fzf)
+        else
+            # Not a worktree directory or child of one; do nothing
+            exit 0
+        fi
     fi
 else
     selected=$(find ~ ~/personal ~/work ~/plugins -mindepth 1 -maxdepth 1 -type d | fzf)
@@ -35,3 +56,4 @@ if ! tmux has-session -t=$selected_name 2> /dev/null; then
 fi
 
 tmux switch-client -t $selected_name
+

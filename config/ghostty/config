@@ -1,3 +1,4 @@
-font-size = 12
+font-size = 16
 gtk-titlebar = false
 theme = Rose Pine
+font-family = "Zed Plex Mono"

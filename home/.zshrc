@@ -35,6 +35,7 @@ export PATH="$HOME/go/bin:$PATH"
 
 # [tmux]
 bindkey -s ^f "tmux-sessionizer\n"
+bindkey -s ^w "tmux-sessionizer $(pwd)\n"
 bindkey -s ^a "tmux a\n"
 bindkey -s ^x "tmux-cht.sh\n"
 
