@@ -9,6 +9,9 @@ eval "$(starship init zsh)"
 # Pull in zsh-autosuggestions
 source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
+# opencode
+export PATH=/home/azat/.opencode/bin:$PATH
+
 # [Local vendor and node_modules]
 export PATH="./vendor/bin/:$PATH"
 export PATH="./node_modules/.bin/:$PATH"
