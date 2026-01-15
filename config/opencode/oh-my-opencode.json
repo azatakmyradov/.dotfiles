@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "google_auth": false,
+  "agents": {
+    "librarian": {
+      "model": "zai-coding-plan/glm-4.7"
+    },
+    "explore": {
+      "model": "opencode/claude-haiku-4-5"
+    },
+    "frontend-ui-ux-engineer": {
+      "model": "opencode/gpt-5.2"
+    },
+    "document-writer": {
+      "model": "opencode/claude-haiku-4-5"
+    },
+    "multimodal-looker": {
+      "model": "opencode/claude-haiku-4-5"
+    }
+  },
+  "disabled_mcps": [
+    "websearch",
+    "context7",
+    "grep_app"
+  ]
+}
