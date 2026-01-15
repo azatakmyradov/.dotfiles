@@ -19,6 +19,9 @@ alias gs="git status"
 alias gd="git diff"
 alias gds="git diff --staged"
 
+alias oc="opencode"
+alias occ="opencode --continue"
+
 # [Servers]
 alias sshcodefrenzies="ssh root@159.223.135.143"
 alias sshakmyradov="ssh root@167.99.157.85"
