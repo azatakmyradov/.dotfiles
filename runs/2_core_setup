@@ -3,6 +3,6 @@
 # [ Update ]
 sudo pacman -Syu
 
-sudo pacman -S fzf tmux zsh starship rofi
+sudo pacman -S tmux zsh
 
 chsh -s $(which zsh)

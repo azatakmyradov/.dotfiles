@@ -22,11 +22,6 @@ alias gds="git diff --staged"
 alias oc="opencode"
 alias occ="opencode --continue"
 
-# [Servers]
-alias sshcodefrenzies="ssh root@159.223.135.143"
-alias sshakmyradov="ssh root@167.99.157.85"
-alias connect_server="ssh -i ~/.ssh/id_akmyradov root@167.99.157.85"
-
 # [Vim aliases]
 alias vim=nvim
 alias vi=nvim
