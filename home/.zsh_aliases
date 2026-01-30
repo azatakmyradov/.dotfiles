@@ -30,8 +30,7 @@ alias vi=nvim
 alias l="ls -l --color"
 alias ll="ls -l --color"
 
-# linux copy
-alias pbcopy='xclip -selection clipboard'
+
 
 # Easily make a web app
 make_web_app ()

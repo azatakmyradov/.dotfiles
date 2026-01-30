@@ -2,22 +2,34 @@ HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 setopt appendhistory
+setopt share_history
+setopt hist_ignore_all_dups
+setopt hist_reduce_blanks
+setopt hist_verify
+
+# Completions (only rebuild cache once per day)
+autoload -Uz compinit
+if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
 
 # Enable Starship
 eval "$(starship init zsh)"
 
 # Pull in zsh-autosuggestions
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[[ -f ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]] && source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # opencode
-export PATH=/home/azat/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 
 # [Local vendor and node_modules]
+# NOTE: Relative paths - executables resolve from current directory
 export PATH="./vendor/bin/:$PATH"
 export PATH="./node_modules/.bin/:$PATH"
 
 # [Bun]
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
@@ -38,12 +50,9 @@ export PATH="$HOME/go/bin:$PATH"
 
 # [tmux]
 bindkey -s ^f "tmux-sessionizer\n"
-bindkey -s ^w "tmux-sessionizer $(pwd)\n"
+bindkey -s ^w 'tmux-sessionizer $(pwd)\n'
 bindkey -s ^a "tmux a\n"
 bindkey -s ^x "tmux-cht.sh\n"
-
-# [Set terminal to xterm-256color for tmux to work properly]
-export TERM=xterm-256color
 
 setopt autocd
 
@@ -54,21 +63,15 @@ else
   export EDITOR='nvim'
 fi
 
-if [ -f ~/.zsh_aliases ]; then
-    source ~/.zsh_aliases
-fi
+[[ -f ~/.zsh_aliases ]] && source ~/.zsh_aliases
+[[ -f ~/.zsh_profile ]] && source ~/.zsh_profile
 
-if [ -f ~/.zsh_profile ]; then
-    source ~/.zsh_profile
-fi
-
-if [[ $(uname) != "Darwin" ]]; then
+OS_TYPE=$(uname)
+if [[ $OS_TYPE != "Darwin" ]]; then
     source ~/.zsh_linux
-elif [[ $(uname) == "Darwin" ]]; then
+else
     source ~/.zsh_mac
 fi
 
-if [ -f ~/.zsh_untracked ]; then
-    # Local only ZSH files
-    source ~/.zsh_untracked
-fi
+# Local only ZSH files
+[[ -f ~/.zsh_untracked ]] && source ~/.zsh_untracked
