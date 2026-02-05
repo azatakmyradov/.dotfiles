@@ -10,7 +10,13 @@ alias phpunit="./vendor/bin/phpunit"
 alias seed="php artisan db:seed"
 
 # [Git]
-alias nah="git reset --hard;git clean -df;"
+function nah
+    git reset --hard
+    git clean -df
+    if test (count $argv) -gt 0
+        $argv
+    end
+end
 alias gl="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
 alias glr="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
 alias ga="git add"
