@@ -81,3 +81,7 @@ copy_dir config $HOME/.config
 copy_dir local $HOME/.local
 copy_dir_files config $HOME/.config
 copy_dir_files home $HOME
+
+if [[ "$(uname -s)" == "Linux" ]]; then
+	copy_dir linux_config $HOME/.config
+fi

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-device=$(xrandr | grep " connected " | awk '{ print$1 }' | head -n 1)
-
-xrandr --output $device --mode 2560x1440 --rate 240.00

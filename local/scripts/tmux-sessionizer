@@ -1,59 +1,63 @@
-#!/usr/bin/env bash
+#!/usr/bin/env fish
 
-# This file is to save the last session name
-temp_data="/tmp/tmux-sessionizer_last_session"
+if not command -q fzf
+    echo "fzf not found" 1>&2
+    exit 1
+end
 
-# If there is only one argument and it is 'last_session', then use the last session
-if [[ $# -eq 1 ]]; then
-    if [[ $1 == 'last_session' ]]; then
-        selected=$(cat $temp_data)
+if not command -q tmux
+    echo "tmux not found" 1>&2
+    exit 1
+end
+
+set -l search_paths "$HOME/personal" "$HOME/work" "$HOME"
+set -l candidates
+
+for root in $search_paths
+    if test -d "$root"
+        set -l found (find -- "$root" -mindepth 1 -maxdepth 1 -type d -name .git -prune -o -type d -print 2>/dev/null)
+        if test (count $found) -gt 0
+            set candidates $candidates $found
+        end
+    end
+end
+
+if test (count $candidates) -eq 0
+    exit 0
+end
+
+set -l selected (printf '%s\n' $candidates | fzf)
+if test -z "$selected"
+    exit 0
+end
+
+# Extract parent (2nd to last component) and child (last component)
+set -l parent (basename (dirname "$selected"))
+set -l child (basename "$selected")
+
+# Replace non-alphanumeric chars with underscores, trim edges
+set -l parent (string replace -ra '[^A-Za-z0-9]+' '_' -- "$parent" | string trim -c '_')
+set -l child (string replace -ra '[^A-Za-z0-9]+' '_' -- "$child" | string trim -c '_')
+
+# Build session name as parent_child
+set -l session "$parent"_"$child"
+
+if test -z "$session" -o "$session" = ":"
+    set session "session"
+end
+
+if tmux has-session -t "$session" 2>/dev/null
+    if set -q TMUX
+        tmux switch-client -t "$session"
     else
-		target_dir=""
+        tmux attach-session -t "$session"
+    end
+    exit 0
+end
 
-        # Check if the path itself is the worktree/git dir
-        if [[ -d "$1/worktrees" || -d "$1/objects" ]]; then
-            target_dir="$1"
-        # Check if the parent of the path is the worktree/git dir
-        elif [[ -d "$1/../worktrees" || -d "$1/../objects" ]]; then
-            target_dir=$(realpath "$1/..")
-        fi
-
-        if [[ -n "$target_dir" ]]; then
-            selected=$(find "$target_dir" -mindepth 1 -maxdepth 1 -type d \
-                -not -name "hooks" \
-                -not -name "info" \
-                -not -name "objects" \
-                -not -name "refs" \
-                -not -name "logs" \
-                -not -name "worktrees" | fzf)
-        else
-            # Not a worktree directory or child of one; do nothing
-            exit 0
-        fi
-    fi
+tmux new-session -d -s "$session" -c "$selected"
+if set -q TMUX
+    tmux switch-client -t "$session"
 else
-    selected=$(find ~ ~/personal ~/work ~/plugins -mindepth 1 -maxdepth 1 -type d | fzf)
-fi
-
-if [[ -z $selected ]]; then
-    exit 0
-fi
-
-selected_name=$(basename "$selected" | tr . _)
-tmux_running=$(pgrep tmux)
-
-if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
-    tmux new-session -s $selected_name -c $selected
-    exit 0
-fi
-
-# Save the current session name
-current_session=$(tmux display-message -p '#S')
-echo $current_session > $temp_data
-
-if ! tmux has-session -t=$selected_name 2> /dev/null; then
-    tmux new-session -ds $selected_name -c $selected
-fi
-
-tmux switch-client -t $selected_name
-
+    tmux attach-session -t "$session"
+end

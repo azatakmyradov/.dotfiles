@@ -3,20 +3,20 @@
 script_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 source "$script_dir/init.sh"
 
-core_setup_linux() {
+linux() {
 	sudo pacman -Syu
-	sudo pacman -S tmux fish starship
+	sudo pacman -S neovim
 }
 
-core_setup_mac() {
-	brew install tmux fish starship
+mac() {
+	brew install neovim
 }
 
 # [ Update ]
 if is_linux; then
-	core_setup_linux()
+	linux()
 else
-	core_setup_mac()
+	mac()
 fi
 
-chsh -s $(which fish)
+git clone -b main https://github.com/azatakmyradov/nvim $HOME/personal/nvim

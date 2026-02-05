@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 
-git clone -b main https://github.com/azatakmyradov/ansible $HOME/personal/ansible
+script_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+source "$script_dir/init.sh"
 
-sudo pacman -S ansible
+if is_linux; then
+	sudo pacman -S ansible
+elif is_mac; then
+	brew install ansible
+else
+	echo "Skipping ssh setup: unsupported OS."
+	exit 0
+fi
+
+git clone -b main https://github.com/azatakmyradov/ansible $HOME/personal/ansible
 
 cd $HOME/personal/ansible
 

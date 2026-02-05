@@ -1,0 +1,8 @@
+partial modifier_keys
+xkb_symbols "caps_ctrl_shift_alt" {
+    replace key <CAPS> {
+        type[Group1] = "ONE_LEVEL",
+        symbols[Group1] = [ NoSymbol ],
+        actions[Group1] = [ SetMods(modifiers=Control+Shift+Mod1) ]
+    };
+};
