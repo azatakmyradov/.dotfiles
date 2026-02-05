@@ -1,63 +1,59 @@
 #!/usr/bin/env fish
 
-if not command -q fzf
-    echo "fzf not found" 1>&2
+set -l search_roots ~/personal ~/work ~/rebelscan ~/notes
+set -l roots
+
+for root in $search_roots
+  if test -d $root
+    set -a roots $root
+  end
+end
+
+if not set -q roots[1]
+  echo "tmux-sessionizer: no search roots found" >&2
+  exit 1
+end
+
+for cmd in fd fzf tmux
+  if not type -q $cmd
+    echo "tmux-sessionizer: missing dependency: $cmd" >&2
     exit 1
+  end
 end
 
-if not command -q tmux
-    echo "tmux not found" 1>&2
-    exit 1
+set -l dirs
+for root in $roots
+  set -a dirs (fd --type d --hidden --exclude .git --absolute-path --max-depth 1 --min-depth 1 . $root)
 end
 
-set -l search_paths "$HOME/personal" "$HOME/work" "$HOME"
-set -l candidates
-
-for root in $search_paths
-    if test -d "$root"
-        set -l found (find -- "$root" -mindepth 1 -maxdepth 1 -type d -name .git -prune -o -type d -print 2>/dev/null)
-        if test (count $found) -gt 0
-            set candidates $candidates $found
-        end
-    end
+if test (count $dirs) -eq 0
+  echo "tmux-sessionizer: no directories found" >&2
+  exit 1
 end
 
-if test (count $candidates) -eq 0
-    exit 0
+set -l selection (printf "%s\n" $dirs | fzf)
+if test -z "$selection"
+  exit 0
 end
 
-set -l selected (printf '%s\n' $candidates | fzf)
-if test -z "$selected"
-    exit 0
+set -l name (basename "$selection")
+set -l name (string replace -ar '[^A-Za-z0-9_-]' '_' $name)
+set -l name (string replace -ar '_+' '_' $name)
+if test -z "$name"
+  set name session
 end
 
-# Extract parent (2nd to last component) and child (last component)
-set -l parent (basename (dirname "$selected"))
-set -l child (basename "$selected")
-
-# Replace non-alphanumeric chars with underscores, trim edges
-set -l parent (string replace -ra '[^A-Za-z0-9]+' '_' -- "$parent" | string trim -c '_')
-set -l child (string replace -ra '[^A-Za-z0-9]+' '_' -- "$child" | string trim -c '_')
-
-# Build session name as parent_child
-set -l session "$parent"_"$child"
-
-if test -z "$session" -o "$session" = ":"
-    set session "session"
-end
-
-if tmux has-session -t "$session" 2>/dev/null
-    if set -q TMUX
-        tmux switch-client -t "$session"
-    else
-        tmux attach-session -t "$session"
-    end
-    exit 0
-end
-
-tmux new-session -d -s "$session" -c "$selected"
-if set -q TMUX
-    tmux switch-client -t "$session"
+if tmux has-session -t "$name" 2>/dev/null
+  if set -q TMUX
+    tmux switch-client -t "$name"
+  else
+    tmux attach-session -t "$name"
+  end
 else
-    tmux attach-session -t "$session"
+  tmux new-session -d -s "$name" -c "$selection"
+  if set -q TMUX
+    tmux switch-client -t "$name"
+  else
+    tmux attach-session -t "$name"
+  end
 end

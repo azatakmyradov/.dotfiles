@@ -1,5 +1,5 @@
 # opencode
-fish_add_path /home/azatakmyradov/.opencode/bin
+fish_add_path $HOME/.opencode/bin
 
 # scripts
-fish_add_path /home/azatakmyradov/.local/scripts
+fish_add_path $HOME/.local/scripts

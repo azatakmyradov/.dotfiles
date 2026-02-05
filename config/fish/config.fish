@@ -1,3 +1,5 @@
+set -gx XFISH_PATH (command -v fish)
+
 # [This is only CachyOS specific]
 if test -f /usr/share/cachyos-fish-config/cachyos-config.fish
     source /usr/share/cachyos-fish-config/cachyos-config.fish
