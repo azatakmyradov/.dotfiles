@@ -7,3 +7,6 @@ fish_add_path $HOME/.local/scripts
 # bun
 set --export BUN_INSTALL "$HOME/.bun"
 set --export PATH $BUN_INSTALL/bin $PATH
+
+# add Go bin to PATH (universal, persists)
+set --export PATH $HOME/go/bin $PATH
