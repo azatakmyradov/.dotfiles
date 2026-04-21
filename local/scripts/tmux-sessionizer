@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-set -l search_roots ~/personal ~/work ~/rebelscan ~/notes
+set -l search_roots ~/personal ~/work ~/rebelscan ~/notes ~/sagex3
 set -l roots
 
 for root in $search_roots

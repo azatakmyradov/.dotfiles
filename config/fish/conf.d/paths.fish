@@ -1,6 +1,9 @@
 # opencode
 fish_add_path $HOME/.opencode/bin
 
+# claude code
+fish_add_path $HOME/.local/bin
+
 # scripts
 fish_add_path $HOME/.local/scripts
 
@@ -13,3 +16,6 @@ set --export PATH $HOME/.local/bin $PATH
 
 # add Go bin to PATH (universal, persists)
 set --export PATH $HOME/go/bin $PATH
+
+# Composer
+set --export PATH $HOME/.config/composer/vendor/bin $PATH
