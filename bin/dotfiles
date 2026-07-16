@@ -5,6 +5,7 @@ DOTFILES_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 STOW_DIR="$DOTFILES_DIR/stow"
 DRY_RUN=0
 BACKUP_ROOT=""
+PI_SETUP_SOURCE='git:github.com/azatakmyradov/pi-setup.git'
 
 usage() {
     cat <<'EOF'
@@ -17,12 +18,13 @@ Commands:
   doctor [target]   Check dependencies and deployed configuration
 
 Targets:
-  core, herdr, tmux, desktop, dev, workstation, all
+  core, herdr, tmux, desktop, pi, dev, workstation, all
   ghostty and linux may also be linked directly.
 
 Examples:
   dotfiles install core
   dotfiles install herdr
+  dotfiles install pi
   dotfiles install workstation
   dotfiles link herdr
   dotfiles unlink herdr
@@ -65,7 +67,7 @@ features_for() {
             printf '%s\n' ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
-        dev) ;;
+        pi|dev) ;;
         workstation)
             printf '%s\n' core herdr ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
@@ -86,7 +88,7 @@ features_for() {
 feature_list() {
     local feature
     case "$1" in
-        core|herdr|tmux|desktop|dev|workstation|all|ghostty|linux) ;;
+        core|herdr|tmux|desktop|pi|dev|workstation|all|ghostty|linux) ;;
         *) fail "unknown target: $1" ;;
     esac
     if [[ "$1" == linux && "$(uname -s)" != Linux ]]; then
@@ -104,6 +106,13 @@ add_unique() {
         [[ "$existing" == "$value" ]] && return
     done
     PACKAGES+=("$value")
+}
+
+target_includes_pi() {
+    case "$1" in
+        pi|dev|all) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 ensure_brew() {
@@ -178,6 +187,70 @@ install_herdr_linux() {
     fi
 }
 
+find_pi_binary() {
+    local npm_prefix
+    if command -v pi >/dev/null 2>&1; then
+        command -v pi
+        return
+    fi
+    if [[ -x "$HOME/.local/bin/pi" ]]; then
+        printf '%s\n' "$HOME/.local/bin/pi"
+        return
+    fi
+    if command -v npm >/dev/null 2>&1; then
+        npm_prefix=$(npm prefix -g 2>/dev/null || npm config get prefix 2>/dev/null || true)
+        if [[ -n "$npm_prefix" && -x "$npm_prefix/bin/pi" ]]; then
+            printf '%s\n' "$npm_prefix/bin/pi"
+            return
+        fi
+    fi
+    return 1
+}
+
+install_pi_cli() {
+    local installer
+    find_pi_binary >/dev/null 2>&1 && return
+    if ((DRY_RUN)); then
+        printf '+ curl -fsSL https://pi.dev/install.sh -o <temporary-file>\n'
+        printf '+ sh <temporary-file>\n'
+        return
+    fi
+
+    installer=$(mktemp "${TMPDIR:-/tmp}/pi-install.XXXXXX")
+    log_command curl -fsSL https://pi.dev/install.sh -o "$installer"
+    if ! curl -fsSL https://pi.dev/install.sh -o "$installer"; then
+        rm -f "$installer"
+        fail 'could not download the Pi installer'
+    fi
+    log_command /bin/sh "$installer"
+    if ! /bin/sh "$installer"; then
+        rm -f "$installer"
+        fail 'the Pi installer failed'
+    fi
+    rm -f "$installer"
+    find_pi_binary >/dev/null 2>&1 || fail 'Pi installation completed but no executable was found'
+}
+
+install_pi_setup() {
+    local pi_bin package_list
+    if ! pi_bin=$(find_pi_binary); then
+        if ((DRY_RUN)); then
+            log_command pi install "$PI_SETUP_SOURCE"
+            return
+        fi
+        fail 'Pi is required to install pi-setup'
+    fi
+
+    package_list=$("$pi_bin" list 2>/dev/null || true)
+    if grep -Fq "$PI_SETUP_SOURCE" <<<"$package_list"; then
+        return
+    fi
+    if grep -Fq "$HOME/personal/pi-setup" <<<"$package_list"; then
+        run "$pi_bin" remove "$HOME/personal/pi-setup"
+    fi
+    run "$pi_bin" install "$PI_SETUP_SOURCE"
+}
+
 install_dependencies() {
     local target=$1 feature os
     feature_list "$target"
@@ -198,6 +271,9 @@ install_dependencies() {
             if [[ "$target" == dev || "$target" == all ]]; then
                 add_unique neovim
             fi
+            if target_includes_pi "$target"; then
+                add_unique node
+            fi
             ((${#PACKAGES[@]} == 0)) || run brew install "${PACKAGES[@]}"
             if contains_word ghostty ${FEATURES[@]+"${FEATURES[@]}"}; then
                 run brew install --cask ghostty helium-browser
@@ -216,6 +292,11 @@ install_dependencies() {
             if [[ "$target" == dev || "$target" == all ]]; then
                 add_unique neovim
             fi
+            if target_includes_pi "$target"; then
+                add_unique curl
+                add_unique nodejs
+                add_unique npm
+            fi
             ((${#PACKAGES[@]} == 0)) || run sudo pacman -S --needed "${PACKAGES[@]}"
 
             if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"} && ! command -v herdr >/dev/null 2>&1; then
@@ -228,6 +309,11 @@ install_dependencies() {
             ;;
         *) fail "unsupported operating system: $os" ;;
     esac
+
+    if target_includes_pi "$target"; then
+        install_pi_cli
+        install_pi_setup
+    fi
 }
 
 ensure_stow() {
@@ -287,8 +373,9 @@ backup_legacy_tmux_sessionizer() {
 
 link_target() {
     local target=$1 package
-    ensure_stow
     feature_list "$target"
+    ((${#FEATURES[@]} == 0)) && return
+    ensure_stow
 
     # Validate every package before changing the home directory.
     for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
@@ -321,8 +408,9 @@ link_target() {
 
 unlink_target() {
     local target=$1 package
-    ensure_stow
     feature_list "$target"
+    ((${#FEATURES[@]} == 0)) && return
+    ensure_stow
     for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         [[ -d "$STOW_DIR/$package" ]] || fail "missing Stow package: $package"
         validate_package_destinations "$package"
@@ -419,6 +507,38 @@ check_herdr() {
     fi
 }
 
+check_pi() {
+    local pi_bin package_list
+    if pi_bin=$(find_pi_binary); then
+        check_ok 'pi is installed'
+    else
+        check_fail 'pi is not installed'
+        pi_bin=""
+    fi
+
+    if command -v node >/dev/null 2>&1; then
+        if node -e 'const [major, minor, patch] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && (minor > 19 || (minor === 19 && patch >= 0))) ? 0 : 1)' >/dev/null 2>&1; then
+            check_ok 'Node.js 22.19.0 or newer is installed'
+        else
+            check_fail 'Node.js 22.19.0 or newer is required'
+        fi
+    else
+        check_fail 'node is not installed'
+    fi
+    check_command npm
+
+    if [[ -n "$pi_bin" ]]; then
+        package_list=$("$pi_bin" list 2>/dev/null || true)
+        if grep -Fq "$PI_SETUP_SOURCE" <<<"$package_list"; then
+            check_ok 'pi-setup is installed from GitHub'
+        else
+            check_fail 'pi-setup is not installed from the configured GitHub source'
+        fi
+    else
+        check_fail 'pi-setup registration could not be checked'
+    fi
+}
+
 check_helium() {
     if [[ "$(uname -s)" == Darwin ]]; then
         if [[ -d /Applications/Helium.app || -d "$HOME/Applications/Helium.app" ]]; then
@@ -437,6 +557,10 @@ doctor_target() {
     local target=$1 feature
     DOCTOR_FAILURES=0
     feature_list "$target"
+
+    if target_includes_pi "$target"; then
+        check_pi
+    fi
 
     for feature in ${FEATURES[@]+"${FEATURES[@]}"}; do
         if [[ "$feature" == herdr ]]; then

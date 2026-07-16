@@ -32,7 +32,8 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 | `herdr` | Herdr, Fish, fd, fzf, jq | `herdr` |
 | `tmux` | tmux | `tmux` |
 | `desktop` | Ghostty, Helium | `ghostty`, plus `linux` on Linux |
-| `dev` | Neovim | None |
+| `pi` | Pi and `azatakmyradov/pi-setup` | None |
+| `dev` | Neovim, Pi, and `pi-setup` | None |
 | `workstation` | `core` + `herdr` + `desktop` | Combined packages |
 | `all` | Every profile | Every applicable package |
 
@@ -47,6 +48,7 @@ Tmux remains an optional fallback and is not part of `workstation`:
 ```bash
 ./bin/dotfiles install core       # install dependencies and link files
 ./bin/dotfiles install herdr
+./bin/dotfiles install pi
 ./bin/dotfiles install workstation
 ./bin/dotfiles link herdr         # only deploy configuration
 ./bin/dotfiles unlink herdr
@@ -56,6 +58,28 @@ Tmux remains an optional fallback and is not part of `workstation`:
 `link`, `unlink`, and `doctor` default to `workstation` when no target is supplied. Direct Stow package targets (`ghostty` and `linux`) are also supported.
 
 Before linking, existing files that would conflict are moved to a timestamped directory under `~/.dotfiles-backups`. The migration only removes the obsolete `~/.local/scripts/tmux-sessionizer` file; it never deletes `~/.local/scripts`.
+
+## Pi setup
+
+The `pi` profile installs Node.js 22.19 or newer, installs Pi with its official installer, and registers the personal setup package directly from GitHub:
+
+```text
+git:github.com/azatakmyradov/pi-setup.git
+```
+
+The same setup is included in the `dev` and `all` profiles. An existing local package registration at `~/personal/pi-setup` is replaced with the GitHub source without deleting the local checkout.
+
+Select the included `github-dark-default` theme manually through `/settings`. Update Pi packages later with:
+
+```bash
+pi update --extensions
+```
+
+Check the installation with:
+
+```bash
+./bin/dotfiles doctor pi
+```
 
 ## Herdr setup
 
