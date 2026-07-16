@@ -1,0 +1,41 @@
+[keys]
+prefix = "ctrl+b"
+
+# Vim-style pane navigation
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+
+# Closest equivalent to tmux last-window / switch-client -l
+last_pane = ["prefix+^", "prefix+shift+l"]
+
+# Direct agent navigation
+previous_agent = "ctrl+["
+next_agent = "ctrl+]"
+
+# Match the tmux reload binding
+reload_config = "prefix+r"
+resize_mode = "prefix+shift+r"
+
+# Also accept traditional tmux bindings
+detach = ["prefix+q", "prefix+d"]
+split_vertical = ["prefix+v", "prefix+%"]
+split_horizontal = ["prefix+minus", "prefix+\""]
+
+# Free prefix+shift+d for the TODO command below
+close_workspace = "prefix+shift+q"
+
+[[keys.command]]
+key = "prefix+shift+d"
+type = "pane"
+command = 'if [ -e TODO.md ]; then exec nvim TODO.md; else exec nvim "$HOME/todo.md"; fi'
+description = "Open project TODO"
+
+[[keys.command]]
+key = "ctrl+f"
+type = "popup"
+command = 'exec "$HOME/.local/scripts/herdr-sessionizer"'
+description = "Open project sessionizer"
+width = "80%"
+height = "70%"

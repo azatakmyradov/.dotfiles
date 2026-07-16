@@ -1,0 +1,98 @@
+#!/usr/bin/env fish
+
+set -l search_roots ~/personal ~/work ~/rebelscan ~/notes ~/sagex3
+set -l required_commands fd fzf jq
+
+function fail
+    echo "herdr-sessionizer: $argv" >&2
+    if isatty stdin
+        read -P "Press Enter to close..."
+    end
+    exit 1
+end
+
+for cmd in $required_commands
+    type -q $cmd; or fail "missing dependency: $cmd"
+end
+
+set -l herdr_bin herdr
+if set -q HERDR_BIN_PATH; and test -x "$HERDR_BIN_PATH"
+    set herdr_bin "$HERDR_BIN_PATH"
+else
+    type -q herdr; or fail "missing dependency: herdr"
+end
+
+set -l roots
+for root in $search_roots
+    if test -d "$root"
+        set -a roots (path resolve "$root")
+    end
+end
+
+test (count $roots) -gt 0; or fail "no search roots found"
+
+set -l projects
+for root in $roots
+    set -a projects (fd --type d --hidden --exclude .git --absolute-path --max-depth 1 --min-depth 1 . "$root")
+end
+
+set projects (path resolve $projects | sort -u)
+test (count $projects) -gt 0; or fail "no project directories found"
+
+set -l snapshot ("$herdr_bin" api snapshot 2>/dev/null)
+test $status -eq 0; or fail "could not read the Herdr session"
+
+set -l open_paths
+set -l open_workspace_ids
+for row in (printf '%s\n' "$snapshot" | jq -r '.result.snapshot.panes[] | select(.cwd != null) | [.cwd, .workspace_id] | @tsv')
+    set -l fields (string split \t -- "$row")
+    test (count $fields) -eq 2; or continue
+
+    set -l pane_path (path resolve "$fields[1]" 2>/dev/null)
+    test -n "$pane_path"; or set pane_path (path normalize "$fields[1]")
+
+    if not contains -- "$pane_path" $open_paths
+        set -a open_paths "$pane_path"
+        set -a open_workspace_ids "$fields[2]"
+    end
+end
+
+set -l rows
+for project in $projects
+    set -l workspace_id -
+    set -l marker " "
+
+    set -l index (contains -i -- "$project" $open_paths)
+    if test $status -eq 0
+        set workspace_id "$open_workspace_ids[$index]"
+        set marker "●"
+    end
+
+    set -l name (path basename "$project")
+    set -l parent (path basename (path dirname "$project"))
+    set -a rows (printf '%s %s — %s\t%s\t%s' "$marker" "$name" "$parent" "$project" "$workspace_id")
+end
+
+set -l selection (printf '%s\n' $rows | fzf \
+    --delimiter=\t \
+    --with-nth=1 \
+    --prompt='Project> ' \
+    --layout=reverse \
+    --border=rounded \
+    --no-multi)
+
+test -n "$selection"; or exit 0
+
+set -l selected (string split \t -- "$selection")
+test (count $selected) -eq 3; or fail "invalid picker selection"
+
+set -l project "$selected[2]"
+set -l workspace_id "$selected[3]"
+
+if test "$workspace_id" != -
+    "$herdr_bin" workspace focus "$workspace_id" >/dev/null
+    test $status -eq 0; or fail "could not focus workspace: $project"
+else
+    "$herdr_bin" workspace create --cwd "$project" --label (path basename "$project") --focus >/dev/null
+    test $status -eq 0; or fail "could not create workspace: $project"
+end
