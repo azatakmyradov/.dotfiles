@@ -35,7 +35,7 @@ keybind = super+shift+l=next_tab
 # Slowdown mouse scrolling
 mouse-scroll-multiplier = 0.95
 
-theme = Rose Pine
+theme = GitHub Dark
 
 desktop-notifications = true
 notify-on-command-finish = unfocused

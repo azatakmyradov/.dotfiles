@@ -1,87 +1,68 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-script_dir=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
-dry="0"
-cleanup="0"
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+dry=0
+cleanup=0
 
-while [[ $# > 0 ]]; do
-	if [[ $1 == "--dry" ]]; then
-		dry="1"
-	fi
+usage() {
+	cat <<EOF
+Usage: $(basename "$0") [--dry] [--cleanup]
 
-	if [[ $1 == "--cleanup" ]]; then
-		cleanup="1"
-	fi
+Sync dotfile directories/files into your home directory.
+  --dry      Print actions without running them
+  --cleanup  Remove managed entries instead of copying them
+EOF
+}
 
+while (($#)); do
+	case "$1" in
+		--dry) dry=1 ;;
+		--cleanup) cleanup=1 ;;
+		-h|--help) usage; exit 0 ;;
+		*) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
+	esac
 	shift
 done
 
-echo $cleanup
-
 log() {
-	if [[ $dry == "1" ]]; then
-		echo "[DRY_RUN]: $@"
+	if ((dry)); then
+		printf '[DRY_RUN]: %s\n' "$*"
 	else
-		echo "$@"
+		printf '%s\n' "$*"
 	fi
 }
 
-execute() {
-	log "execute $@"
-	if [[ $dry == "1" ]]; then
-		return
-	fi
-	"$@"
+run() {
+	log "execute $*"
+	((dry)) || "$@"
 }
 
-log "------------------ dev --------------------"
+sync_entries() {
+	local from=$1 to=$2 type=$3 entry dest
 
-copy_dir() {
-	from=$1
-	to=$2
+	[[ -d "$from" ]] || return 0
+	((cleanup)) || run mkdir -p "$to"
 
-	pushd $from > /dev/null
-		dirs=$(find . -mindepth 1 -maxdepth 1 -type d)
-		for dir in $dirs; do
-			execute rm -rf $to/$dir
-			if [[ $cleanup != "1" ]]; then
-				execute cp -r $dir $to/$dir
-			fi
-		done
-	popd > /dev/null
+	while IFS= read -r -d '' entry; do
+		dest="$to/$(basename "$entry")"
+		run rm -rf "$dest"
+		((cleanup)) || run cp -R "$entry" "$dest"
+	done < <(find "$script_dir/$from" -mindepth 1 -maxdepth 1 -type "$type" -print0)
 }
 
-copy_dir_files() {
-	from=$1
-	to=$2
-
-	pushd $from > /dev/null
-		files=$(find . -mindepth 1 -maxdepth 1 -type f)
-		for file in $files; do
-			execute rm $to/$file
-			if [[ $cleanup != "1" ]]; then
-				execute cp $file $to/$file
-			fi
-		done
-	popd > /dev/null
+sync_tree() {
+	local from=$1 to=$2
+	sync_entries "$from" "$to" d
+	sync_entries "$from" "$to" f
 }
 
-copy_file() {
-	from=$1
-	to=$2
-	name=$(basename $from)
+log '------------------ dev --------------------'
 
-	execute rm $to/$name
-	if [[ $cleanup != "1" ]]; then
-		execute cp $from $to/$name
-	fi
-}
-
-copy_dir config $HOME/.config
-copy_dir local $HOME/.local
-copy_dir_files config $HOME/.config
-copy_dir_files home $HOME
+sync_tree config "$HOME/.config"
+sync_tree local "$HOME/.local"
+sync_tree home "$HOME"
 
 if [[ "$(uname -s)" == "Linux" ]]; then
-	copy_dir linux_config $HOME/.config
+	sync_tree linux_config "$HOME/.config"
 fi
