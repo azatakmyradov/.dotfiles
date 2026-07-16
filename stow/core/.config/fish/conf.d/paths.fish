@@ -1,6 +1,3 @@
-# opencode
-fish_add_path $HOME/.opencode/bin
-
 # User executables
 fish_add_path $HOME/.local/bin
 

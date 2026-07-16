@@ -30,10 +30,6 @@ alias gb="git branch"
 alias gsw="git switch"
 alias gw="git worktree"
 
-# [Opencode]
-alias oc="opencode"
-alias occ="opencode --continue"
-
 # [Claude]
 alias rootclaude="cd ~ && claude"
 alias cc="claude"

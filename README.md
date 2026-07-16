@@ -32,7 +32,7 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 | `herdr` | Herdr, Fish, fd, fzf, jq | `herdr` |
 | `tmux` | tmux | `tmux` |
 | `desktop` | Ghostty, Helium | `ghostty`, plus `linux` on Linux |
-| `dev` | Neovim, OpenCode | `opencode` |
+| `dev` | Neovim | None |
 | `workstation` | `core` + `herdr` + `desktop` | Combined packages |
 | `all` | Every profile | Every applicable package |
 
@@ -53,7 +53,7 @@ Tmux remains an optional fallback and is not part of `workstation`:
 ./bin/dotfiles doctor herdr
 ```
 
-`link`, `unlink`, and `doctor` default to `workstation` when no target is supplied. Direct Stow package targets (`ghostty`, `opencode`, and `linux`) are also supported.
+`link`, `unlink`, and `doctor` default to `workstation` when no target is supplied. Direct Stow package targets (`ghostty` and `linux`) are also supported.
 
 Before linking, existing files that would conflict are moved to a timestamped directory under `~/.dotfiles-backups`. The migration only removes the obsolete `~/.local/scripts/tmux-sessionizer` file; it never deletes `~/.local/scripts`.
 
@@ -93,7 +93,6 @@ stow/core/                   Fish, Starship, and basic shell files
 stow/herdr/                  Herdr config and sessionizer
 stow/tmux/                   Optional tmux fallback
 stow/ghostty/                Ghostty config
-stow/opencode/               OpenCode config
 stow/linux/                  Niri and XKB config
 ```
 

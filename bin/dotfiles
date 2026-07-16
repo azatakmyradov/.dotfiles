@@ -18,7 +18,7 @@ Commands:
 
 Targets:
   core, herdr, tmux, desktop, dev, workstation, all
-  ghostty, opencode, and linux may also be linked directly.
+  ghostty and linux may also be linked directly.
 
 Examples:
   dotfiles install core
@@ -65,16 +65,16 @@ features_for() {
             printf '%s\n' ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
-        dev) printf '%s\n' opencode ;;
+        dev) ;;
         workstation)
             printf '%s\n' core herdr ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         all)
-            printf '%s\n' core herdr tmux ghostty opencode
+            printf '%s\n' core herdr tmux ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
-        ghostty|opencode) printf '%s\n' "$1" ;;
+        ghostty) printf '%s\n' "$1" ;;
         linux)
             [[ "$(uname -s)" == Linux ]] || fail 'the linux target is only available on Linux'
             printf '%s\n' linux
@@ -86,7 +86,7 @@ features_for() {
 feature_list() {
     local feature
     case "$1" in
-        core|herdr|tmux|desktop|dev|workstation|all|ghostty|opencode|linux) ;;
+        core|herdr|tmux|desktop|dev|workstation|all|ghostty|linux) ;;
         *) fail "unknown target: $1" ;;
     esac
     if [[ "$1" == linux && "$(uname -s)" != Linux ]]; then
@@ -187,32 +187,30 @@ install_dependencies() {
     case "$os" in
         Darwin)
             ensure_brew
-            for feature in "${FEATURES[@]}"; do
+            for feature in ${FEATURES[@]+"${FEATURES[@]}"}; do
                 case "$feature" in
                     core) add_unique stow; add_unique fish; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique herdr ;;
                     tmux) add_unique stow; add_unique tmux ;;
                     ghostty|linux) add_unique stow ;;
-                    opencode) add_unique stow; add_unique opencode ;;
                 esac
             done
             if [[ "$target" == dev || "$target" == all ]]; then
                 add_unique neovim
-                add_unique opencode
             fi
             ((${#PACKAGES[@]} == 0)) || run brew install "${PACKAGES[@]}"
-            if contains_word ghostty "${FEATURES[@]}"; then
+            if contains_word ghostty ${FEATURES[@]+"${FEATURES[@]}"}; then
                 run brew install --cask ghostty helium-browser
             fi
             ;;
         Linux)
             command -v pacman >/dev/null 2>&1 || fail 'Linux installation currently supports Arch Linux (pacman)'
-            for feature in "${FEATURES[@]}"; do
+            for feature in ${FEATURES[@]+"${FEATURES[@]}"}; do
                 case "$feature" in
                     core) add_unique stow; add_unique fish; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique curl ;;
                     tmux) add_unique stow; add_unique tmux ;;
-                    ghostty|opencode|linux) add_unique stow ;;
+                    ghostty|linux) add_unique stow ;;
                 esac
             done
             if [[ "$target" == dev || "$target" == all ]]; then
@@ -220,16 +218,12 @@ install_dependencies() {
             fi
             ((${#PACKAGES[@]} == 0)) || run sudo pacman -S --needed "${PACKAGES[@]}"
 
-            if contains_word herdr "${FEATURES[@]}" && ! command -v herdr >/dev/null 2>&1; then
+            if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"} && ! command -v herdr >/dev/null 2>&1; then
                 install_herdr_linux
             fi
-            if contains_word ghostty "${FEATURES[@]}"; then
+            if contains_word ghostty ${FEATURES[@]+"${FEATURES[@]}"}; then
                 ensure_paru
                 run paru -S --needed ghostty helium-browser-bin
-            fi
-            if contains_word opencode "${FEATURES[@]}"; then
-                ensure_paru
-                run paru -S --needed opencode-bin
             fi
             ;;
         *) fail "unsupported operating system: $os" ;;
@@ -297,23 +291,23 @@ link_target() {
     feature_list "$target"
 
     # Validate every package before changing the home directory.
-    for package in "${FEATURES[@]}"; do
+    for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         [[ -d "$STOW_DIR/$package" ]] || fail "missing Stow package: $package"
         validate_package_destinations "$package"
     done
-    if contains_word herdr "${FEATURES[@]}" && { [[ -e "$HOME/.local/scripts/tmux-sessionizer" ]] || [[ -L "$HOME/.local/scripts/tmux-sessionizer" ]]; }; then
+    if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"} && { [[ -e "$HOME/.local/scripts/tmux-sessionizer" ]] || [[ -L "$HOME/.local/scripts/tmux-sessionizer" ]]; }; then
         assert_safe_destination '.local/scripts/tmux-sessionizer'
     fi
 
     # Back up all conflicts before the first Stow deployment.
-    for package in "${FEATURES[@]}"; do
+    for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         backup_conflicts "$package"
     done
-    if contains_word herdr "${FEATURES[@]}"; then
+    if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"}; then
         backup_legacy_tmux_sessionizer
     fi
 
-    for package in "${FEATURES[@]}"; do
+    for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         run stow --no-folding --restow --dir "$STOW_DIR" --target "$HOME" "$package"
     done
     if [[ -n "$BACKUP_ROOT" ]]; then
@@ -329,11 +323,11 @@ unlink_target() {
     local target=$1 package
     ensure_stow
     feature_list "$target"
-    for package in "${FEATURES[@]}"; do
+    for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         [[ -d "$STOW_DIR/$package" ]] || fail "missing Stow package: $package"
         validate_package_destinations "$package"
     done
-    for package in "${FEATURES[@]}"; do
+    for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         run stow --no-folding --delete --dir "$STOW_DIR" --target "$HOME" "$package"
     done
 }
@@ -444,7 +438,7 @@ doctor_target() {
     DOCTOR_FAILURES=0
     feature_list "$target"
 
-    for feature in "${FEATURES[@]}"; do
+    for feature in ${FEATURES[@]+"${FEATURES[@]}"}; do
         if [[ "$feature" == herdr ]]; then
             check_herdr
             continue
@@ -454,7 +448,6 @@ doctor_target() {
             core) check_command fish; check_command starship ;;
             tmux) check_command tmux ;;
             ghostty) check_command ghostty ;;
-            opencode) check_command opencode ;;
         esac
     done
     if [[ "$target" == dev || "$target" == all ]]; then
