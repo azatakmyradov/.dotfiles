@@ -5,7 +5,10 @@ DOTFILES_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 STOW_DIR="$DOTFILES_DIR/stow"
 DRY_RUN=0
 BACKUP_ROOT=""
-PI_SETUP_SOURCE='git:github.com/azatakmyradov/pi-setup.git'
+PI_SETUP_CLONE_PLANNED=0
+PI_SETUP_DIR="$HOME/personal/pi-setup"
+PI_SETUP_REPOSITORY='https://github.com/azatakmyradov/pi-setup.git'
+PI_SETUP_LEGACY_SOURCE='git:github.com/azatakmyradov/pi-setup.git'
 
 usage() {
     cat <<'EOF'
@@ -13,6 +16,7 @@ Usage: dotfiles <command> [target] [--dry-run]
 
 Commands:
   install [target]  Install dependencies and link configuration (default: workstation)
+  update [target]   Update the repository, dependencies, and configuration
   link <target>     Link configuration with GNU Stow
   unlink <target>   Unlink configuration with GNU Stow
   doctor [target]   Check dependencies and deployed configuration
@@ -26,6 +30,8 @@ Examples:
   dotfiles install herdr
   dotfiles install pi
   dotfiles install workstation
+  dotfiles update workstation
+  dotfiles update pi --dry-run
   dotfiles link herdr
   dotfiles unlink herdr
   dotfiles doctor herdr
@@ -162,6 +168,22 @@ ensure_paru() {
     fi
 }
 
+find_herdr_binary() {
+    if [[ ${HERDR_BIN_PATH:-} && -x "$HERDR_BIN_PATH" ]]; then
+        printf '%s\n' "$HERDR_BIN_PATH"
+        return
+    fi
+    if command -v herdr >/dev/null 2>&1; then
+        command -v herdr
+        return
+    fi
+    if [[ -x "$HOME/.local/bin/herdr" ]]; then
+        printf '%s\n' "$HOME/.local/bin/herdr"
+        return
+    fi
+    return 1
+}
+
 install_herdr_linux() {
     local installer
     if ((DRY_RUN)); then
@@ -182,9 +204,7 @@ install_herdr_linux() {
         fail 'the Herdr installer failed'
     fi
     rm -f "$installer"
-    if ! command -v herdr >/dev/null 2>&1 && [[ ! -x "$HOME/.local/bin/herdr" ]]; then
-        fail 'Herdr installation completed but no executable was found'
-    fi
+    find_herdr_binary >/dev/null 2>&1 || fail 'Herdr installation completed but no executable was found'
 }
 
 find_pi_binary() {
@@ -231,24 +251,40 @@ install_pi_cli() {
     find_pi_binary >/dev/null 2>&1 || fail 'Pi installation completed but no executable was found'
 }
 
+ensure_pi_setup_checkout() {
+    ((PI_SETUP_CLONE_PLANNED)) && return 0
+    command -v git >/dev/null 2>&1 || fail 'git is required to clone pi-setup'
+    if [[ -e "$PI_SETUP_DIR" || -L "$PI_SETUP_DIR" ]]; then
+        [[ -d "$PI_SETUP_DIR" ]] || fail "$PI_SETUP_DIR exists and is not a directory"
+        git -C "$PI_SETUP_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "$PI_SETUP_DIR is not a Git worktree"
+        return
+    fi
+
+    run mkdir -p "$(dirname -- "$PI_SETUP_DIR")"
+    run git clone "$PI_SETUP_REPOSITORY" "$PI_SETUP_DIR"
+    if ((DRY_RUN)); then
+        PI_SETUP_CLONE_PLANNED=1
+    fi
+}
+
 install_pi_setup() {
     local pi_bin package_list
+    ensure_pi_setup_checkout
+
     if ! pi_bin=$(find_pi_binary); then
         if ((DRY_RUN)); then
-            log_command pi install "$PI_SETUP_SOURCE"
+            log_command pi install "$PI_SETUP_DIR"
             return
         fi
         fail 'Pi is required to install pi-setup'
     fi
 
     package_list=$("$pi_bin" list 2>/dev/null || true)
-    if grep -Fq "$PI_SETUP_SOURCE" <<<"$package_list"; then
-        return
+    if grep -Fq "$PI_SETUP_LEGACY_SOURCE" <<<"$package_list"; then
+        run "$pi_bin" remove "$PI_SETUP_LEGACY_SOURCE"
     fi
-    if grep -Fq "$HOME/personal/pi-setup" <<<"$package_list"; then
-        run "$pi_bin" remove "$HOME/personal/pi-setup"
-    fi
-    run "$pi_bin" install "$PI_SETUP_SOURCE"
+    grep -Fq "$PI_SETUP_DIR" <<<"$package_list" && return
+    run "$pi_bin" install "$PI_SETUP_DIR"
 }
 
 install_dependencies() {
@@ -299,7 +335,7 @@ install_dependencies() {
             fi
             ((${#PACKAGES[@]} == 0)) || run sudo pacman -S --needed "${PACKAGES[@]}"
 
-            if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"} && ! command -v herdr >/dev/null 2>&1; then
+            if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"} && ! find_herdr_binary >/dev/null 2>&1; then
                 install_herdr_linux
             fi
             if contains_word ghostty ${FEATURES[@]+"${FEATURES[@]}"}; then
@@ -313,6 +349,136 @@ install_dependencies() {
     if target_includes_pi "$target"; then
         install_pi_cli
         install_pi_setup
+    fi
+}
+
+validate_update_repository() {
+    local status
+    command -v git >/dev/null 2>&1 || fail 'git is required to update dotfiles'
+    git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "$DOTFILES_DIR is not a Git worktree"
+    git -C "$DOTFILES_DIR" symbolic-ref --quiet HEAD >/dev/null 2>&1 || fail 'cannot update from a detached HEAD'
+    git -C "$DOTFILES_DIR" rev-parse --verify '@{upstream}' >/dev/null 2>&1 || fail 'the current branch has no upstream'
+    status=$(git -C "$DOTFILES_DIR" status --porcelain=v1 --untracked-files=normal)
+    [[ -z "$status" ]] || fail 'the dotfiles worktree has local changes; commit or remove them before updating'
+}
+
+update_repository() {
+    local target=$1 revision
+    if [[ -n ${DOTFILES_UPDATE_POST_PULL:-} ]]; then
+        revision=$DOTFILES_UPDATE_POST_PULL
+        unset DOTFILES_UPDATE_POST_PULL
+        validate_update_repository
+        [[ "$(git -C "$DOTFILES_DIR" rev-parse HEAD)" == "$revision" ]] || fail 'the repository changed while restarting the update'
+        return
+    fi
+
+    validate_update_repository
+    if ((DRY_RUN)); then
+        run git -C "$DOTFILES_DIR" pull --ff-only
+        return
+    fi
+
+    run git -C "$DOTFILES_DIR" pull --ff-only
+    revision=$(git -C "$DOTFILES_DIR" rev-parse HEAD)
+    log_command env DOTFILES_UPDATE_POST_PULL="$revision" "$DOTFILES_DIR/bin/dotfiles" update "$target"
+    exec env DOTFILES_UPDATE_POST_PULL="$revision" "$DOTFILES_DIR/bin/dotfiles" update "$target"
+}
+
+validate_pi_setup_checkout() {
+    local status
+    command -v git >/dev/null 2>&1 || fail 'git is required to update pi-setup'
+    [[ -d "$PI_SETUP_DIR" ]] || fail "$PI_SETUP_DIR does not exist"
+    git -C "$PI_SETUP_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "$PI_SETUP_DIR is not a Git worktree"
+    git -C "$PI_SETUP_DIR" symbolic-ref --quiet HEAD >/dev/null 2>&1 || fail 'cannot update pi-setup from a detached HEAD'
+    git -C "$PI_SETUP_DIR" rev-parse --verify '@{upstream}' >/dev/null 2>&1 || fail 'the pi-setup branch has no upstream'
+    status=$(git -C "$PI_SETUP_DIR" status --porcelain=v1 --untracked-files=normal)
+    [[ -z "$status" ]] || fail 'the pi-setup worktree has local changes; commit or remove them before updating'
+}
+
+preflight_pi_setup_update() {
+    [[ -e "$PI_SETUP_DIR" || -L "$PI_SETUP_DIR" ]] || return 0
+    validate_pi_setup_checkout
+}
+
+update_pi_setup_checkout() {
+    if ((DRY_RUN)) && [[ ! -d "$PI_SETUP_DIR" ]]; then
+        return
+    fi
+    validate_pi_setup_checkout
+    run git -C "$PI_SETUP_DIR" pull --ff-only
+}
+
+update_pi() {
+    local pi_bin
+    if ! pi_bin=$(find_pi_binary); then
+        if ((DRY_RUN)); then
+            log_command pi update --all
+            return
+        fi
+        fail 'Pi is required to update Pi packages'
+    fi
+    run "$pi_bin" update --all
+}
+
+update_dependencies() {
+    local target=$1 os herdr_bin
+    os=$(uname -s)
+    feature_list "$target"
+
+    case "$os" in
+        Darwin)
+            ensure_brew
+            run brew update
+            install_dependencies "$target"
+            ((${#PACKAGES[@]} == 0)) || run brew upgrade "${PACKAGES[@]}"
+            if contains_word ghostty ${FEATURES[@]+"${FEATURES[@]}"}; then
+                run brew upgrade --cask --greedy ghostty helium-browser
+            fi
+            ;;
+        Linux)
+            command -v pacman >/dev/null 2>&1 || fail 'Linux updates currently support Arch Linux (pacman)'
+            run sudo pacman -Syu
+            install_dependencies "$target"
+            if contains_word herdr ${FEATURES[@]+"${FEATURES[@]}"}; then
+                if herdr_bin=$(find_herdr_binary); then
+                    run "$herdr_bin" update
+                elif ((DRY_RUN)); then
+                    log_command herdr update
+                else
+                    fail 'Herdr is required to update the herdr target'
+                fi
+            fi
+            if contains_word ghostty ${FEATURES[@]+"${FEATURES[@]}"}; then
+                run paru -Syu --needed ghostty helium-browser-bin
+            fi
+            ;;
+        *) fail "unsupported operating system: $os" ;;
+    esac
+
+    if target_includes_pi "$target"; then
+        update_pi
+    fi
+}
+
+update_target() {
+    local target=$1
+
+    # Validate targets and local checkouts before changing the machine.
+    feature_list "$target"
+    if target_includes_pi "$target"; then
+        preflight_pi_setup_update
+    fi
+    update_repository "$target"
+    if target_includes_pi "$target"; then
+        ensure_pi_setup_checkout
+        update_pi_setup_checkout
+    fi
+    update_dependencies "$target"
+    link_target "$target"
+    if ((DRY_RUN)); then
+        log_command "$DOTFILES_DIR/bin/dotfiles" doctor "$target"
+    else
+        doctor_target "$target"
     fi
 }
 
@@ -527,12 +693,18 @@ check_pi() {
     fi
     check_command npm
 
+    if git -C "$PI_SETUP_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        check_ok 'pi-setup local checkout exists'
+    else
+        check_fail 'pi-setup local checkout is missing or invalid'
+    fi
+
     if [[ -n "$pi_bin" ]]; then
         package_list=$("$pi_bin" list 2>/dev/null || true)
-        if grep -Fq "$PI_SETUP_SOURCE" <<<"$package_list"; then
-            check_ok 'pi-setup is installed from GitHub'
+        if grep -Fq "$PI_SETUP_DIR" <<<"$package_list"; then
+            check_ok 'pi-setup is installed from the local checkout'
         else
-            check_fail 'pi-setup is not installed from the configured GitHub source'
+            check_fail 'pi-setup is not installed from the local checkout'
         fi
     else
         check_fail 'pi-setup registration could not be checked'
@@ -609,6 +781,10 @@ case "$COMMAND" in
         TARGET=${TARGET:-workstation}
         install_dependencies "$TARGET"
         link_target "$TARGET"
+        ;;
+    update)
+        TARGET=${TARGET:-workstation}
+        update_target "$TARGET"
         ;;
     link)
         TARGET=${TARGET:-workstation}

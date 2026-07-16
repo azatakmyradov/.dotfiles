@@ -50,29 +50,42 @@ Tmux remains an optional fallback and is not part of `workstation`:
 ./bin/dotfiles install herdr
 ./bin/dotfiles install pi
 ./bin/dotfiles install workstation
+./bin/dotfiles update             # update the workstation profile
+./bin/dotfiles update pi
 ./bin/dotfiles link herdr         # only deploy configuration
 ./bin/dotfiles unlink herdr
 ./bin/dotfiles doctor herdr
 ```
 
-`link`, `unlink`, and `doctor` default to `workstation` when no target is supplied. Direct Stow package targets (`ghostty` and `linux`) are also supported.
+`update`, `link`, `unlink`, and `doctor` default to `workstation` when no target is supplied. Direct Stow package targets (`ghostty` and `linux`) are also supported.
+
+`update` requires a clean dotfiles worktree and a branch with an upstream. It pulls with `git pull --ff-only`, upgrades software for the selected profile, restows its configuration, and finishes by running `doctor`. On Arch Linux it performs a full `pacman -Syu`, because partial system upgrades are unsupported. Pi targets update Pi and all registered packages with `pi update --all`.
+
+Preview the complete update sequence without pulling, upgrading, or linking:
+
+```bash
+./bin/dotfiles update workstation --dry-run
+```
 
 Before linking, existing files that would conflict are moved to a timestamped directory under `~/.dotfiles-backups`. The migration only removes the obsolete `~/.local/scripts/tmux-sessionizer` file; it never deletes `~/.local/scripts`.
 
 ## Pi setup
 
-The `pi` profile installs Node.js 22.19 or newer, installs Pi with its official installer, and registers the personal setup package directly from GitHub:
+The `pi` profile installs Node.js 22.19 or newer and installs Pi with its official installer. It clones the personal setup repository when needed:
 
 ```text
-git:github.com/azatakmyradov/pi-setup.git
+https://github.com/azatakmyradov/pi-setup.git
+    → ~/personal/pi-setup
 ```
 
-The same setup is included in the `dev` and `all` profiles. An existing local package registration at `~/personal/pi-setup` is replaced with the GitHub source without deleting the local checkout.
+Pi registers `~/personal/pi-setup` as a local package and loads its resources directly from that checkout. The same setup is included in the `dev` and `all` profiles.
 
-Select the included `github-dark-default` theme manually through `/settings`. Update Pi packages later with:
+`dotfiles update pi` requires the local checkout to be clean, pulls it with `git pull --ff-only`, and then runs `pi update --all`. The checkout remains available for local development; commit or remove local changes before updating.
+
+Select the included `github-dark-default` theme manually through `/settings`. Update Pi and its registered packages later with:
 
 ```bash
-pi update --extensions
+./bin/dotfiles update pi
 ```
 
 Check the installation with:
