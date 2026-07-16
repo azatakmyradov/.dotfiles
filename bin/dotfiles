@@ -1,0 +1,510 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+STOW_DIR="$DOTFILES_DIR/stow"
+DRY_RUN=0
+BACKUP_ROOT=""
+
+usage() {
+    cat <<'EOF'
+Usage: dotfiles <command> [target] [--dry-run]
+
+Commands:
+  install [target]  Install dependencies and link configuration (default: workstation)
+  link <target>     Link configuration with GNU Stow
+  unlink <target>   Unlink configuration with GNU Stow
+  doctor [target]   Check dependencies and deployed configuration
+
+Targets:
+  core, herdr, tmux, desktop, dev, workstation, all
+  ghostty, opencode, and linux may also be linked directly.
+
+Examples:
+  dotfiles install core
+  dotfiles install herdr
+  dotfiles install workstation
+  dotfiles link herdr
+  dotfiles unlink herdr
+  dotfiles doctor herdr
+  dotfiles install --dry-run
+EOF
+}
+
+log_command() {
+    printf '+'
+    printf ' %q' "$@"
+    printf '\n'
+}
+
+run() {
+    log_command "$@"
+    ((DRY_RUN)) || "$@"
+}
+
+fail() {
+    printf 'dotfiles: %s\n' "$*" >&2
+    exit 1
+}
+
+contains_word() {
+    local wanted=$1 word
+    shift
+    for word in "$@"; do
+        [[ "$word" == "$wanted" ]] && return 0
+    done
+    return 1
+}
+
+features_for() {
+    case "$1" in
+        core) printf '%s\n' core ;;
+        herdr) printf '%s\n' herdr ;;
+        tmux) printf '%s\n' tmux ;;
+        desktop)
+            printf '%s\n' ghostty
+            [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
+            ;;
+        dev) printf '%s\n' opencode ;;
+        workstation)
+            printf '%s\n' core herdr ghostty
+            [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
+            ;;
+        all)
+            printf '%s\n' core herdr tmux ghostty opencode
+            [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
+            ;;
+        ghostty|opencode) printf '%s\n' "$1" ;;
+        linux)
+            [[ "$(uname -s)" == Linux ]] || fail 'the linux target is only available on Linux'
+            printf '%s\n' linux
+            ;;
+        *) fail "unknown target: $1" ;;
+    esac
+}
+
+feature_list() {
+    local feature
+    case "$1" in
+        core|herdr|tmux|desktop|dev|workstation|all|ghostty|opencode|linux) ;;
+        *) fail "unknown target: $1" ;;
+    esac
+    if [[ "$1" == linux && "$(uname -s)" != Linux ]]; then
+        fail 'the linux target is only available on Linux'
+    fi
+    FEATURES=()
+    while IFS= read -r feature; do
+        [[ -n "$feature" ]] && FEATURES+=("$feature")
+    done < <(features_for "$1")
+}
+
+add_unique() {
+    local value=$1 existing
+    for existing in "${PACKAGES[@]:-}"; do
+        [[ "$existing" == "$value" ]] && return
+    done
+    PACKAGES+=("$value")
+}
+
+ensure_brew() {
+    local installer
+    if command -v brew >/dev/null 2>&1; then
+        return
+    fi
+    if ((DRY_RUN)); then
+        printf '+ curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o <temporary-file>\n'
+        printf '+ /bin/bash <temporary-file>\n'
+        return
+    fi
+
+    installer=$(mktemp "${TMPDIR:-/tmp}/homebrew-install.XXXXXX")
+    log_command curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o "$installer"
+    if ! curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o "$installer"; then
+        rm -f "$installer"
+        fail 'could not download the Homebrew installer'
+    fi
+    log_command /bin/bash "$installer"
+    if ! /bin/bash "$installer"; then
+        rm -f "$installer"
+        fail 'the Homebrew installer failed'
+    fi
+    rm -f "$installer"
+
+    if [[ -x /opt/homebrew/bin/brew ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x /usr/local/bin/brew ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    else
+        fail 'Homebrew installation did not put brew on PATH'
+    fi
+}
+
+ensure_paru() {
+    if command -v paru >/dev/null 2>&1; then
+        return
+    fi
+    run sudo pacman -S --needed base-devel git
+    run rm -rf /tmp/paru-package
+    run git clone https://aur.archlinux.org/paru.git /tmp/paru-package
+    if ((DRY_RUN)); then
+        printf '+ (cd /tmp/paru-package && makepkg -si --needed)\n'
+    else
+        (cd /tmp/paru-package && makepkg -si --needed)
+    fi
+}
+
+install_herdr_linux() {
+    local installer
+    if ((DRY_RUN)); then
+        printf '+ curl -fsSL https://herdr.dev/install.sh -o <temporary-file>\n'
+        printf '+ sh <temporary-file>\n'
+        return
+    fi
+
+    installer=$(mktemp "${TMPDIR:-/tmp}/herdr-install.XXXXXX")
+    log_command curl -fsSL https://herdr.dev/install.sh -o "$installer"
+    if ! curl -fsSL https://herdr.dev/install.sh -o "$installer"; then
+        rm -f "$installer"
+        fail 'could not download the Herdr installer'
+    fi
+    log_command /bin/sh "$installer"
+    if ! /bin/sh "$installer"; then
+        rm -f "$installer"
+        fail 'the Herdr installer failed'
+    fi
+    rm -f "$installer"
+    if ! command -v herdr >/dev/null 2>&1 && [[ ! -x "$HOME/.local/bin/herdr" ]]; then
+        fail 'Herdr installation completed but no executable was found'
+    fi
+}
+
+install_dependencies() {
+    local target=$1 feature os
+    feature_list "$target"
+    os=$(uname -s)
+    PACKAGES=()
+
+    case "$os" in
+        Darwin)
+            ensure_brew
+            for feature in "${FEATURES[@]}"; do
+                case "$feature" in
+                    core) add_unique stow; add_unique fish; add_unique starship ;;
+                    herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique herdr ;;
+                    tmux) add_unique stow; add_unique tmux ;;
+                    ghostty|linux) add_unique stow ;;
+                    opencode) add_unique stow; add_unique opencode ;;
+                esac
+            done
+            if [[ "$target" == dev || "$target" == all ]]; then
+                add_unique neovim
+                add_unique opencode
+            fi
+            ((${#PACKAGES[@]} == 0)) || run brew install "${PACKAGES[@]}"
+            if contains_word ghostty "${FEATURES[@]}"; then
+                run brew install --cask ghostty helium-browser
+            fi
+            ;;
+        Linux)
+            command -v pacman >/dev/null 2>&1 || fail 'Linux installation currently supports Arch Linux (pacman)'
+            for feature in "${FEATURES[@]}"; do
+                case "$feature" in
+                    core) add_unique stow; add_unique fish; add_unique starship ;;
+                    herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique curl ;;
+                    tmux) add_unique stow; add_unique tmux ;;
+                    ghostty|opencode|linux) add_unique stow ;;
+                esac
+            done
+            if [[ "$target" == dev || "$target" == all ]]; then
+                add_unique neovim
+            fi
+            ((${#PACKAGES[@]} == 0)) || run sudo pacman -S --needed "${PACKAGES[@]}"
+
+            if contains_word herdr "${FEATURES[@]}" && ! command -v herdr >/dev/null 2>&1; then
+                install_herdr_linux
+            fi
+            if contains_word ghostty "${FEATURES[@]}"; then
+                ensure_paru
+                run paru -S --needed ghostty helium-browser-bin
+            fi
+            if contains_word opencode "${FEATURES[@]}"; then
+                ensure_paru
+                run paru -S --needed opencode-bin
+            fi
+            ;;
+        *) fail "unsupported operating system: $os" ;;
+    esac
+}
+
+ensure_stow() {
+    ((DRY_RUN)) || command -v stow >/dev/null 2>&1 || fail 'GNU Stow is required; run `dotfiles install <target>` first'
+}
+
+assert_safe_destination() {
+    local rel=$1 remainder=$1 component ancestor=$HOME
+    while [[ "$remainder" == */* ]]; do
+        component=${remainder%%/*}
+        remainder=${remainder#*/}
+        ancestor="$ancestor/$component"
+        if [[ -L "$ancestor" ]]; then
+            fail "refusing to modify files through symlinked directory: $ancestor"
+        fi
+    done
+}
+
+validate_package_destinations() {
+    local package=$1 source rel
+    while IFS= read -r -d '' source; do
+        rel=${source#"$STOW_DIR/$package/"}
+        assert_safe_destination "$rel"
+    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) -print0)
+}
+
+ensure_backup_root() {
+    if [[ -z "$BACKUP_ROOT" ]]; then
+        BACKUP_ROOT="$HOME/.dotfiles-backups/$(date +%Y%m%d-%H%M%S)-$$"
+    fi
+}
+
+backup_path() {
+    local path=$1 rel=$2
+    [[ -e "$path" || -L "$path" ]] || return 0
+    assert_safe_destination "$rel"
+    ensure_backup_root
+    run mkdir -p "$BACKUP_ROOT/$(dirname -- "$rel")"
+    run mv "$path" "$BACKUP_ROOT/$rel"
+}
+
+backup_conflicts() {
+    local package=$1 source rel destination
+    while IFS= read -r -d '' source; do
+        rel=${source#"$STOW_DIR/$package/"}
+        destination="$HOME/$rel"
+        if [[ -e "$destination" && "$source" -ef "$destination" ]]; then
+            continue
+        fi
+        backup_path "$destination" "$rel"
+    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) -print0)
+}
+
+backup_legacy_tmux_sessionizer() {
+    backup_path "$HOME/.local/scripts/tmux-sessionizer" '.local/scripts/tmux-sessionizer'
+}
+
+link_target() {
+    local target=$1 package
+    ensure_stow
+    feature_list "$target"
+
+    # Validate every package before changing the home directory.
+    for package in "${FEATURES[@]}"; do
+        [[ -d "$STOW_DIR/$package" ]] || fail "missing Stow package: $package"
+        validate_package_destinations "$package"
+    done
+    if contains_word herdr "${FEATURES[@]}" && { [[ -e "$HOME/.local/scripts/tmux-sessionizer" ]] || [[ -L "$HOME/.local/scripts/tmux-sessionizer" ]]; }; then
+        assert_safe_destination '.local/scripts/tmux-sessionizer'
+    fi
+
+    # Back up all conflicts before the first Stow deployment.
+    for package in "${FEATURES[@]}"; do
+        backup_conflicts "$package"
+    done
+    if contains_word herdr "${FEATURES[@]}"; then
+        backup_legacy_tmux_sessionizer
+    fi
+
+    for package in "${FEATURES[@]}"; do
+        run stow --no-folding --restow --dir "$STOW_DIR" --target "$HOME" "$package"
+    done
+    if [[ -n "$BACKUP_ROOT" ]]; then
+        if ((DRY_RUN)); then
+            printf 'Would back up conflicting files to %s\n' "$BACKUP_ROOT"
+        else
+            printf 'Backed up conflicting files to %s\n' "$BACKUP_ROOT"
+        fi
+    fi
+}
+
+unlink_target() {
+    local target=$1 package
+    ensure_stow
+    feature_list "$target"
+    for package in "${FEATURES[@]}"; do
+        [[ -d "$STOW_DIR/$package" ]] || fail "missing Stow package: $package"
+        validate_package_destinations "$package"
+    done
+    for package in "${FEATURES[@]}"; do
+        run stow --no-folding --delete --dir "$STOW_DIR" --target "$HOME" "$package"
+    done
+}
+
+check_ok() {
+    printf 'ok   %s\n' "$1"
+}
+
+check_fail() {
+    printf 'FAIL %s\n' "$1" >&2
+    DOCTOR_FAILURES=$((DOCTOR_FAILURES + 1))
+}
+
+check_command() {
+    if command -v "$1" >/dev/null 2>&1; then
+        check_ok "$1 is installed"
+    else
+        check_fail "$1 is not installed"
+    fi
+}
+
+check_deployed_package() {
+    local package=$1 source rel destination missing=0
+    while IFS= read -r -d '' source; do
+        rel=${source#"$STOW_DIR/$package/"}
+        destination="$HOME/$rel"
+        if [[ ! -e "$destination" || ! "$source" -ef "$destination" ]]; then
+            missing=1
+            break
+        fi
+    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) -print0)
+
+    if ((missing)); then
+        check_fail "$package configuration is not fully deployed"
+    else
+        check_ok "$package configuration is deployed"
+    fi
+}
+
+check_herdr() {
+    local roots_value root found=0
+    local config_source="$STOW_DIR/herdr/.config/herdr/config.toml"
+    local sessionizer_source="$STOW_DIR/herdr/.local/bin/herdr-sessionizer"
+
+    if [[ ${HERDR_BIN_PATH+x} ]]; then
+        if [[ -n "$HERDR_BIN_PATH" && -x "$HERDR_BIN_PATH" ]]; then
+            check_ok 'HERDR_BIN_PATH points to an executable'
+        else
+            check_fail 'HERDR_BIN_PATH does not point to an executable'
+        fi
+    else
+        check_command herdr
+    fi
+    check_command fish
+    check_command fd
+    check_command fzf
+    check_command jq
+
+    if [[ -e "$HOME/.config/herdr/config.toml" && "$config_source" -ef "$HOME/.config/herdr/config.toml" ]]; then
+        check_ok 'Herdr config is deployed by Stow'
+    else
+        check_fail 'Herdr config is not deployed by Stow'
+    fi
+    if [[ -x "$HOME/.local/bin/herdr-sessionizer" && "$sessionizer_source" -ef "$HOME/.local/bin/herdr-sessionizer" ]]; then
+        check_ok 'herdr-sessionizer is deployed and executable'
+    else
+        check_fail 'herdr-sessionizer is not deployed by Stow or executable'
+    fi
+
+    if [[ ${HERDR_PROJECT_ROOTS+x} ]]; then
+        roots_value=$HERDR_PROJECT_ROOTS
+    else
+        roots_value="$HOME/personal:$HOME/work:$HOME/rebelscan:$HOME/notes:$HOME/sagex3"
+    fi
+    while IFS= read -r root; do
+        case "$root" in
+            '~') root=$HOME ;;
+            '~/'*) root="$HOME/${root#\~/}" ;;
+        esac
+        if [[ -n "$root" && -d "$root" ]]; then
+            found=1
+            break
+        fi
+    done < <(printf '%s\n' "$roots_value" | tr ':' '\n')
+    if ((found)); then
+        check_ok 'at least one Herdr project root exists'
+    else
+        check_fail 'none of the configured Herdr project roots exist'
+    fi
+}
+
+check_helium() {
+    if [[ "$(uname -s)" == Darwin ]]; then
+        if [[ -d /Applications/Helium.app || -d "$HOME/Applications/Helium.app" ]]; then
+            check_ok 'Helium is installed'
+        else
+            check_fail 'Helium is not installed'
+        fi
+    elif command -v helium >/dev/null 2>&1 || command -v helium-browser >/dev/null 2>&1; then
+        check_ok 'Helium is installed'
+    else
+        check_fail 'Helium is not installed'
+    fi
+}
+
+doctor_target() {
+    local target=$1 feature
+    DOCTOR_FAILURES=0
+    feature_list "$target"
+
+    for feature in "${FEATURES[@]}"; do
+        if [[ "$feature" == herdr ]]; then
+            check_herdr
+            continue
+        fi
+        check_deployed_package "$feature"
+        case "$feature" in
+            core) check_command fish; check_command starship ;;
+            tmux) check_command tmux ;;
+            ghostty) check_command ghostty ;;
+            opencode) check_command opencode ;;
+        esac
+    done
+    if [[ "$target" == dev || "$target" == all ]]; then
+        check_command nvim
+    fi
+    if [[ "$target" == desktop || "$target" == workstation || "$target" == all ]]; then
+        check_helium
+    fi
+
+    if ((DOCTOR_FAILURES)); then
+        printf '\n%d check(s) failed.\n' "$DOCTOR_FAILURES" >&2
+        return 1
+    fi
+    printf '\nAll checks passed.\n'
+}
+
+COMMAND=${1:-help}
+[[ $# -eq 0 ]] || shift
+TARGET=""
+while (($#)); do
+    case "$1" in
+        --dry-run|--dry) DRY_RUN=1 ;;
+        -h|--help) COMMAND=help ;;
+        -*) fail "unknown option: $1" ;;
+        *)
+            [[ -z "$TARGET" ]] || fail 'only one target may be specified'
+            TARGET=$1
+            ;;
+    esac
+    shift
+done
+
+case "$COMMAND" in
+    install)
+        TARGET=${TARGET:-workstation}
+        install_dependencies "$TARGET"
+        link_target "$TARGET"
+        ;;
+    link)
+        TARGET=${TARGET:-workstation}
+        link_target "$TARGET"
+        ;;
+    unlink)
+        TARGET=${TARGET:-workstation}
+        unlink_target "$TARGET"
+        ;;
+    doctor)
+        TARGET=${TARGET:-workstation}
+        doctor_target "$TARGET"
+        ;;
+    help|-h|--help) usage ;;
+    *) usage >&2; fail "unknown command: $COMMAND" ;;
+esac

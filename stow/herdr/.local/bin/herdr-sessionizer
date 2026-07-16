@@ -1,6 +1,11 @@
 #!/usr/bin/env fish
 
-set -l search_roots ~/personal ~/work ~/rebelscan ~/notes ~/sagex3
+if set -q HERDR_PROJECT_ROOTS
+    set search_roots (string split : -- "$HERDR_PROJECT_ROOTS")
+else
+    set search_roots ~/personal ~/work ~/rebelscan ~/notes ~/sagex3
+end
+
 set -l required_commands fd fzf jq
 
 function fail
@@ -24,6 +29,12 @@ end
 
 set -l roots
 for root in $search_roots
+    if test "$root" = "~"
+        set root "$HOME"
+    else if string match -q '~/*' -- "$root"
+        set root "$HOME/"(string replace -r '^~/' '' -- "$root")
+    end
+
     if test -d "$root"
         set -a roots (path resolve "$root")
     end
