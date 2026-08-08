@@ -1,3 +1,10 @@
+onboarding = false
+[theme]
+name = "one-dark"
+auto_switch = true
+dark_name = "one-dark"
+light_name = "one-light"
+
 [keys]
 prefix = "ctrl+b"
 

@@ -14,7 +14,17 @@ end
 # [Starship]
 starship init fish | source
 
+# [Zoxide]
+zoxide init fish | source
+
 # [Device specific configuration that is not git tracked]
 if test -f "$HOME/device.fish"
     source "$HOME/device.fish"
 end
+
+# pnpm
+set -gx PNPM_HOME "/Users/azatakmyradov/Library/pnpm"
+if not string match -q -- "$PNPM_HOME/bin" $PATH
+  set -gx PATH "$PNPM_HOME/bin" $PATH
+end
+# pnpm end
