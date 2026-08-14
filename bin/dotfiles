@@ -488,6 +488,10 @@ ensure_stow() {
     ((DRY_RUN)) || command -v stow >/dev/null 2>&1 || fail 'GNU Stow is required; run `dotfiles install <target>` first'
 }
 
+find_package_files() {
+    find "$STOW_DIR/$1" -name node_modules -prune -o \( -type f -o -type l \) ! -name .gitignore ! -name .stow-local-ignore -print0
+}
+
 assert_safe_destination() {
     local rel=$1 remainder=$1 component ancestor=$HOME
     while [[ "$remainder" == */* ]]; do
@@ -505,7 +509,7 @@ validate_package_destinations() {
     while IFS= read -r -d '' source; do
         rel=${source#"$STOW_DIR/$package/"}
         assert_safe_destination "$rel"
-    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) ! -name .gitignore -print0)
+    done < <(find_package_files "$package")
 }
 
 ensure_backup_root() {
@@ -532,7 +536,14 @@ backup_conflicts() {
             continue
         fi
         backup_path "$destination" "$rel"
-    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) ! -name .gitignore -print0)
+    done < <(find_package_files "$package")
+}
+
+install_linked_dependencies() {
+    local plugin_dir="$HOME/.config/opencode/plugins/setup"
+    contains_word opencode ${FEATURES[@]+"${FEATURES[@]}"} || return
+    ((DRY_RUN)) || command -v bun >/dev/null 2>&1 || fail 'Bun is required to install the OpenCode setup plugin dependencies'
+    run bun install --cwd "$plugin_dir"
 }
 
 backup_legacy_tmux_sessionizer() {
@@ -565,6 +576,7 @@ link_target() {
     for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         run stow --no-folding --restow --dir "$STOW_DIR" --target "$HOME" "$package"
     done
+    install_linked_dependencies
     if [[ -n "$BACKUP_ROOT" ]]; then
         if ((DRY_RUN)); then
             printf 'Would back up conflicting files to %s\n' "$BACKUP_ROOT"
@@ -614,7 +626,7 @@ check_deployed_package() {
             missing=1
             break
         fi
-    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) ! -name .gitignore -print0)
+    done < <(find_package_files "$package")
 
     if ((missing)); then
         check_fail "$package configuration is not fully deployed"

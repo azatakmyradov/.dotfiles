@@ -1,0 +1,5 @@
+# Generated plugin dependencies stay local to each machine.
+node_modules
+
+# Preserve Stow's built-in Git ignore behavior when using a local list.
+\.gitignore
