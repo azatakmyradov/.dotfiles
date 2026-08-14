@@ -21,9 +21,9 @@ configuration and `tui.ts` in the TUI plugin configuration:
 bun install
 ```
 
-Server plugin entry: `/Users/azatakmyradov/personal/opencode-setup/index.ts`
+Server plugin entry: `~/.config/opencode/plugins/setup/index.ts` (auto-discovered)
 
-TUI plugin entry: `/Users/azatakmyradov/personal/opencode-setup/tui.ts`
+TUI plugin entry in `~/.config/opencode/cli.json`: `./plugins/setup/tui.ts`
 
 The server and TUI communicate through an authenticated, user-only Unix socket
 under `/tmp/opencode-subagents-$UID`. This fallback is intentional: the pinned

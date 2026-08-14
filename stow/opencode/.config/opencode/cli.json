@@ -4,7 +4,7 @@
     "mode": "system"
   },
   "plugins": [
-    "/Users/azatakmyradov/personal/opencode-setup/tui.ts"
+    "./plugins/setup/tui.ts"
   ],
   "animations": true,
   "session": {
