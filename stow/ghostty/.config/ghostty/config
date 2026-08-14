@@ -32,7 +32,7 @@ keybind = super+shift+l=next_tab
 # Slowdown mouse scrolling
 mouse-scroll-multiplier = 0.95
 
-theme = light:GitHub,dark:GitHub Dark
+theme = light:Catppuccin Latte,dark:Catppuccin Mocha
 
 desktop-notifications = true
 notify-on-command-finish = unfocused

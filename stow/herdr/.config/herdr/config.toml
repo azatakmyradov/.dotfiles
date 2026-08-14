@@ -1,9 +1,9 @@
 onboarding = false
 [theme]
-name = "one-dark"
+name = "catppuccin"
 auto_switch = true
-dark_name = "one-dark"
-light_name = "one-light"
+dark_name = "catppuccin"
+light_name = "catppuccin-latte"
 
 [keys]
 prefix = "ctrl+b"
@@ -20,6 +20,10 @@ last_pane = ["prefix+^", "prefix+shift+l"]
 # Direct agent navigation
 previous_agent = "ctrl+["
 next_agent = "ctrl+]"
+
+# Direct workspace navigation
+# previous_workspace = "ctrl+p"
+# next_workspace = "ctrl+n"
 
 # Match the tmux reload binding
 reload_config = "prefix+r"
