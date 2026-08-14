@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "x3": {
+        "type": "local",
+		"command": [
+			"x3",
+			"mcp",
+			"--enable-remote",
+			"--enable-remote-writes"
+		],
+		"cwd": "."
+      },
+    },
+  }
+}

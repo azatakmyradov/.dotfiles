@@ -1,0 +1,32 @@
+{
+  "theme": {
+    "name": "catppuccin",
+    "mode": "system"
+  },
+  "plugins": [
+    "/Users/azatakmyradov/personal/opencode-setup/tui.ts"
+  ],
+  "animations": true,
+  "session": {
+    "sidebar": "hide",
+    "scrollbar": false,
+    "thinking": "hide",
+    "markdown": "rendered",
+    "image_preview": false,
+    "grouping": "auto"
+  },
+  "tabs": {
+    "layout": "vertical",
+    "scope": "cwd",
+    "enabled": true
+  },
+  "debug": {
+    "turn_tokens": false
+  },
+  "diffs": {
+    "view": "unified"
+  },
+  "scroll": {
+    "acceleration": false
+  }
+}

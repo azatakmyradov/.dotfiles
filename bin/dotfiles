@@ -22,12 +22,13 @@ Commands:
   doctor [target]   Check dependencies and deployed configuration
 
 Targets:
-  core, herdr, tmux, desktop, pi, dev, workstation, all
+  core, herdr, tmux, opencode, desktop, pi, dev, workstation, all
   ghostty and linux may also be linked directly.
 
 Examples:
   dotfiles install core
   dotfiles install herdr
+  dotfiles install opencode
   dotfiles install pi
   dotfiles install workstation
   dotfiles update workstation
@@ -69,17 +70,18 @@ features_for() {
         core) printf '%s\n' core ;;
         herdr) printf '%s\n' herdr ;;
         tmux) printf '%s\n' tmux ;;
+        opencode) printf '%s\n' opencode ;;
         desktop)
             printf '%s\n' ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         pi|dev) ;;
         workstation)
-            printf '%s\n' core herdr ghostty
+            printf '%s\n' core herdr opencode ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         all)
-            printf '%s\n' core herdr tmux ghostty
+            printf '%s\n' core herdr tmux opencode ghostty
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         ghostty) printf '%s\n' "$1" ;;
@@ -94,7 +96,7 @@ features_for() {
 feature_list() {
     local feature
     case "$1" in
-        core|herdr|tmux|desktop|pi|dev|workstation|all|ghostty|linux) ;;
+        core|herdr|tmux|opencode|desktop|pi|dev|workstation|all|ghostty|linux) ;;
         *) fail "unknown target: $1" ;;
     esac
     if [[ "$1" == linux && "$(uname -s)" != Linux ]]; then
@@ -301,7 +303,7 @@ install_dependencies() {
                     core) add_unique stow; add_unique fish; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique herdr ;;
                     tmux) add_unique stow; add_unique tmux ;;
-                    ghostty|linux) add_unique stow ;;
+                    opencode|ghostty|linux) add_unique stow ;;
                 esac
             done
             if [[ "$target" == dev || "$target" == all ]]; then
@@ -322,7 +324,7 @@ install_dependencies() {
                     core) add_unique stow; add_unique fish; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique curl ;;
                     tmux) add_unique stow; add_unique tmux ;;
-                    ghostty|linux) add_unique stow ;;
+                    opencode|ghostty|linux) add_unique stow ;;
                 esac
             done
             if [[ "$target" == dev || "$target" == all ]]; then
@@ -503,7 +505,7 @@ validate_package_destinations() {
     while IFS= read -r -d '' source; do
         rel=${source#"$STOW_DIR/$package/"}
         assert_safe_destination "$rel"
-    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) -print0)
+    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) ! -name .gitignore -print0)
 }
 
 ensure_backup_root() {
@@ -530,7 +532,7 @@ backup_conflicts() {
             continue
         fi
         backup_path "$destination" "$rel"
-    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) -print0)
+    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) ! -name .gitignore -print0)
 }
 
 backup_legacy_tmux_sessionizer() {
@@ -612,7 +614,7 @@ check_deployed_package() {
             missing=1
             break
         fi
-    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) -print0)
+    done < <(find "$STOW_DIR/$package" \( -type f -o -type l \) ! -name .gitignore -print0)
 
     if ((missing)); then
         check_fail "$package configuration is not fully deployed"

@@ -32,6 +32,7 @@ mkdir -p "$SEED/bin" \
     "$SEED/stow/core" \
     "$SEED/stow/herdr/.config/herdr" \
     "$SEED/stow/herdr/.local/bin" \
+    "$SEED/stow/opencode/.config/opencode" \
     "$SEED/stow/ghostty/.config/ghostty" \
     "$SEED/stow/linux/.config" \
     "$HOME_DIR" \
@@ -41,6 +42,7 @@ printf 'fixture\n' >"$SEED/stow/core/.hushlogin"
 printf 'fixture\n' >"$SEED/stow/herdr/.config/herdr/config.toml"
 printf '#!/bin/sh\n' >"$SEED/stow/herdr/.local/bin/herdr-sessionizer"
 chmod +x "$SEED/stow/herdr/.local/bin/herdr-sessionizer"
+printf 'fixture\n' >"$SEED/stow/opencode/.config/opencode/opencode.jsonc"
 printf 'fixture\n' >"$SEED/stow/ghostty/.config/ghostty/config"
 printf 'fixture\n' >"$SEED/stow/linux/.config/linux-fixture"
 
@@ -86,6 +88,7 @@ output=$("$REPO/bin/dotfiles" update --dry-run)
 assert_contains "$output" "git -C $REPO pull --ff-only"
 assert_contains "$output" 'brew update'
 assert_contains "$output" "$REPO/bin/dotfiles doctor workstation"
+assert_contains "$output" "stow --no-folding --restow --dir $REPO/stow --target $HOME opencode"
 assert_empty "$COMMAND_LOG"
 
 # Pi setup is cloned into ~/personal and registered as a local package.

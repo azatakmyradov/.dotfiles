@@ -10,7 +10,7 @@ cd ~/.dotfiles
 ./bin/dotfiles install workstation
 ```
 
-`workstation` installs and links `core`, `herdr`, and `desktop`. The installer uses Homebrew on macOS and `pacman`/`paru` on Arch Linux. Herdr is installed with Homebrew on macOS and its official installer on Linux.
+`workstation` installs and links `core`, `herdr`, `opencode`, and `desktop`. The installer uses Homebrew on macOS and `pacman`/`paru` on Arch Linux. Herdr is installed with Homebrew on macOS and its official installer on Linux.
 
 Preview an installation without changing the machine:
 
@@ -31,6 +31,7 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 | `core` | Fish, Starship | `core` |
 | `herdr` | Herdr, Fish, fd, fzf, jq | `herdr` |
 | `tmux` | tmux | `tmux` |
+| `opencode` | None (configuration only) | `opencode` |
 | `desktop` | Ghostty, Helium | `ghostty`, plus `linux` on Linux |
 | `pi` | Pi and `azatakmyradov/pi-setup` | None |
 | `dev` | Neovim, Pi, and `pi-setup` | None |
@@ -48,6 +49,7 @@ Tmux remains an optional fallback and is not part of `workstation`:
 ```bash
 ./bin/dotfiles install core       # install dependencies and link files
 ./bin/dotfiles install herdr
+./bin/dotfiles install opencode
 ./bin/dotfiles install pi
 ./bin/dotfiles install workstation
 ./bin/dotfiles update             # update the workstation profile
@@ -129,6 +131,7 @@ bin/dotfiles                 Profile installer and Stow frontend
 stow/core/                   Fish, Starship, and basic shell files
 stow/herdr/                  Herdr config and sessionizer
 stow/tmux/                   Optional tmux fallback
+stow/opencode/               OpenCode global and TUI configuration
 stow/ghostty/                Ghostty config
 stow/linux/                  Niri and XKB config
 ```
