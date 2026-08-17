@@ -1,7 +1,7 @@
 ---
 name: deslop
 description: Remove AI-generated code slop and clean up code style
-slash: "true"
+slash: true
 metadata:
     opencode/autoinvoke: "false"
 ---

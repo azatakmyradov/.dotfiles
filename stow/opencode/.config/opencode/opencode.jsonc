@@ -3,6 +3,7 @@
   "plugins": [
     "./plugins/setup/index.ts",
   ],
+  "autoupdate": false,
   "mcp": {
     "servers": {
       "x3": {
@@ -10,8 +11,7 @@
 		"command": [
 			"x3",
 			"mcp",
-			"--enable-remote",
-			"--enable-remote-writes"
+			"--enable-dangerous-ops"
 		],
 		"cwd": "."
       },

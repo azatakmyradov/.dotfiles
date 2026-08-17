@@ -3,7 +3,7 @@
 This package provides two OpenCode V2 plugins:
 
 - `index.ts`: authoritative subagent server plugin
-- `tui.ts`: `/implement`, `/commit`, `/create-pr`, `/save-md`, and the `/subagents` TUI client
+- `tui.ts`: `/implement`, `/commit`, `/save-md`, and the `/subagents` TUI client
 
 Plugin-managed subagents run through the Claude Agent SDK or Codex app-server.
 The server owns lifecycle state, four-running and 64-tracked limits,
@@ -53,14 +53,12 @@ Use `/commit-model` or **Select commit model** in the command palette to choose
 an enabled model for the current repository. The selection persists across TUI
 restarts.
 
-`/create-pr` requires `git`, an `origin` remote, and an authenticated GitHub CLI
-(`gh auth login`). It inspects the current repository's branch, default remote
-base, commits, diff, changed files, and pull request templates. It uses the model
-selected by `/commit-model`, falling back to the session model when available;
-optional command text guides title and body generation. The command rejects
-detached `HEAD` and `main`, reports an existing pull request without changing
-it, and shows the generated title, base, and body for confirmation before it
-pushes or creates anything remotely.
+`/create-pr` is a global Markdown command in `commands/create-pr.md`, not a TUI
+plugin command. It requires `git`, an `origin` remote, and an authenticated
+GitHub CLI (`gh auth login`). It inspects repository conventions, committed
+changes, and pull request templates, then asks for confirmation before pushing
+or creating a non-draft pull request. Optional command text supplies additional
+instructions.
 
 `/save-md` saves the latest assistant response to `<name>.md` in the active
 session directory. It preserves Markdown text, excludes reasoning and tool

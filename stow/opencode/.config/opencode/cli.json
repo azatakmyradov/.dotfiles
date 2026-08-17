@@ -6,6 +6,9 @@
   "plugins": [
     "./plugins/setup/tui.ts"
   ],
+  "keybinds": {
+    "session.compact": "none"
+  },
   "animations": true,
   "session": {
     "sidebar": "hide",

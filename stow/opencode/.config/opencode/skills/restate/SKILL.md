@@ -1,7 +1,7 @@
 ---
 name: bro
 description: Restate vour last message.
-slash: "true"
+slash: true
 metadata:
     opencode/autoinvoke: "false"
 ---

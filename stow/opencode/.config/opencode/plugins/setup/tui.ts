@@ -13,11 +13,9 @@ import { orderSnapshots } from "./src/subagents/tui/dashboard.tsx";
 import { Detail } from "./src/subagents/tui/detail.tsx";
 import { Status } from "./src/subagents/tui/status.tsx";
 import { setupCommit } from "./src/git/commit.ts";
-import { setupCreatePullRequest } from "./src/git/pull-request.ts";
 import { setupSaveMarkdown } from "./src/save-markdown.ts";
 
 export { setupCommit } from "./src/git/commit.ts";
-export { setupCreatePullRequest } from "./src/git/pull-request.ts";
 export { setupSaveMarkdown } from "./src/save-markdown.ts";
 
 export function findLatestAssistantMessage(
@@ -131,7 +129,6 @@ export default Plugin.define({
   setup: (ctx) => {
     const disposeImplement = setupImplement(ctx);
     const disposeCommit = setupCommit(ctx);
-    const disposeCreatePullRequest = setupCreatePullRequest(ctx);
     const disposeSaveMarkdown = setupSaveMarkdown(ctx);
     const bridge = createBridgeClient();
     let parentSessionID: string | undefined;
@@ -226,7 +223,6 @@ export default Plugin.define({
     return () => {
       disposeImplement();
       disposeCommit();
-      disposeCreatePullRequest();
       disposeSaveMarkdown();
       disposeStatus();
       unregisterDetail();
