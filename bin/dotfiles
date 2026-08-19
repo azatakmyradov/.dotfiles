@@ -636,7 +636,7 @@ check_deployed_package() {
 }
 
 check_herdr() {
-    local roots_value root found=0
+    local roots_value root parent match found=0
     local config_source="$STOW_DIR/herdr/.config/herdr/config.toml"
     local sessionizer_source="$STOW_DIR/herdr/.local/bin/herdr-sessionizer"
 
@@ -675,8 +675,18 @@ check_herdr() {
             '~') root=$HOME ;;
             '~/'*) root="$HOME/${root#\~/}" ;;
         esac
-        if [[ -n "$root" && -d "$root" ]]; then
+        if [[ "$root" == *'/*' ]]; then
+            parent=${root%/\*}
+            for match in "$parent"/*; do
+                if [[ -d "$match" ]]; then
+                    found=1
+                    break
+                fi
+            done
+        elif [[ -n "$root" && -d "$root" ]]; then
             found=1
+        fi
+        if ((found)); then
             break
         fi
     done < <(printf '%s\n' "$roots_value" | tr ':' '\n')

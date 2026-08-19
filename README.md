@@ -110,6 +110,12 @@ Override the roots per machine with a colon-separated Fish variable in an untrac
 set -gx HERDR_PROJECT_ROOTS "$HOME/personal:$HOME/work:$HOME/notes"
 ```
 
+A root ending in `/*` expands to each matching directory. This is useful when projects are grouped one level deeper, such as `~/x3/team-a/project-a`:
+
+```fish
+set -gx HERDR_PROJECT_ROOTS "$HOME/personal:$HOME/x3/*"
+```
+
 If Herdr is installed outside `PATH`, set its executable explicitly:
 
 ```fish

@@ -35,7 +35,14 @@ for root in $search_roots
         set root "$HOME/"(string replace -r '^~/' '' -- "$root")
     end
 
-    if test -d "$root"
+    if string match -q '*/\*' -- "$root"
+        set -l parent (string replace -r '/\*$' '' -- "$root")
+        for match in "$parent"/*
+            if test -d "$match"
+                set -a roots (path resolve "$match")
+            end
+        end
+    else if test -d "$root"
         set -a roots (path resolve "$root")
     end
 end
