@@ -23,6 +23,13 @@ assert_contains() {
     grep -Fq -- "$expected" <<<"$output" || fail "expected output to contain: $expected"
 }
 
+assert_not_contains() {
+    local output=$1 unexpected=$2
+    if grep -Fq -- "$unexpected" <<<"$output"; then
+        fail "expected output not to contain: $unexpected"
+    fi
+}
+
 assert_empty() {
     local path=$1
     [[ ! -s "$path" ]] || fail "expected $path to be empty"
@@ -89,6 +96,7 @@ assert_contains "$output" "git -C $REPO pull --ff-only"
 assert_contains "$output" 'brew update'
 assert_contains "$output" "$REPO/bin/dotfiles doctor workstation"
 assert_contains "$output" "stow --no-folding --restow --dir $REPO/stow --target $HOME opencode"
+assert_not_contains "$output" "bun install --cwd $HOME/.config/opencode/plugins/setup"
 assert_empty "$COMMAND_LOG"
 
 # Pi setup is cloned into ~/personal and registered as a local package.

@@ -1,9 +1,5 @@
 ---
-name: deslop
 description: Remove AI-generated code slop and clean up code style
-slash: true
-metadata:
-    opencode/autoinvoke: "false"
 ---
 
 # Remove AI code slop

@@ -71,6 +71,8 @@ Preview the complete update sequence without pulling, upgrading, or linking:
 
 Before linking, existing files that would conflict are moved to a timestamped directory under `~/.dotfiles-backups`. The migration only removes the obsolete `~/.local/scripts/tmux-sessionizer` file; it never deletes `~/.local/scripts`.
 
+The OpenCode configuration loads development plugins from `~/personal/opencode-plugins`, which is managed separately from this repository. Generated OpenCode state such as `node_modules`, `service.json`, package manifests, and lockfiles remains local under `~/.config/opencode` and is not managed by Stow.
+
 ## Pi setup
 
 The `pi` profile installs Node.js 22.19 or newer and installs Pi with its official installer. It clones the personal setup repository when needed:

@@ -1,5 +1,9 @@
-# Generated plugin dependencies stay local to each machine.
+# OpenCode generates runtime and package state beside the stowed files.
 node_modules
+service\.json
+package\.json
+package-lock\.json
+bun\.lock
 
 # Preserve Stow's built-in Git ignore behavior when using a local list.
 \.gitignore

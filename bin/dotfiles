@@ -539,13 +539,6 @@ backup_conflicts() {
     done < <(find_package_files "$package")
 }
 
-install_linked_dependencies() {
-    local plugin_dir="$HOME/.config/opencode/plugins/setup"
-    contains_word opencode ${FEATURES[@]+"${FEATURES[@]}"} || return
-    ((DRY_RUN)) || command -v bun >/dev/null 2>&1 || fail 'Bun is required to install the OpenCode setup plugin dependencies'
-    run bun install --cwd "$plugin_dir"
-}
-
 backup_legacy_tmux_sessionizer() {
     backup_path "$HOME/.local/scripts/tmux-sessionizer" '.local/scripts/tmux-sessionizer'
 }
@@ -576,7 +569,6 @@ link_target() {
     for package in ${FEATURES[@]+"${FEATURES[@]}"}; do
         run stow --no-folding --restow --dir "$STOW_DIR" --target "$HOME" "$package"
     done
-    install_linked_dependencies
     if [[ -n "$BACKUP_ROOT" ]]; then
         if ((DRY_RUN)); then
             printf 'Would back up conflicting files to %s\n' "$BACKUP_ROOT"

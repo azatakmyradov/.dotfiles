@@ -3,7 +3,7 @@
 if set -q HERDR_PROJECT_ROOTS
     set search_roots (string split : -- "$HERDR_PROJECT_ROOTS")
 else
-    set search_roots ~/personal ~/work ~/rebelscan ~/notes ~/sagex3
+    set search_roots ~/personal ~/work ~/rebelscan ~/notes ~/sagex3 ~/x3/*
 end
 
 set -l required_commands fd fzf jq
