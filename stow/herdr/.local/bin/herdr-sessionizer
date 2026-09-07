@@ -49,10 +49,7 @@ end
 
 test (count $roots) -gt 0; or fail "no search roots found"
 
-set -l projects
-for root in $roots
-    set -a projects (fd --type d --hidden --exclude .git --absolute-path --max-depth 1 --min-depth 1 . "$root")
-end
+set -l projects (fd --type d --hidden --exclude .git --absolute-path --max-depth 1 --min-depth 1 . $roots)
 
 set projects (path resolve $projects | sort -u)
 test (count $projects) -gt 0; or fail "no project directories found"
