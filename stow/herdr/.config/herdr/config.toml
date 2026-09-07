@@ -24,6 +24,7 @@ next_agent = "ctrl+]"
 # Direct workspace navigation
 # previous_workspace = "ctrl+p"
 # next_workspace = "ctrl+n"
+open_worktree = "prefix+shift+o"
 
 # Match the tmux reload binding
 reload_config = "prefix+r"

@@ -11,6 +11,10 @@ function fish_greeting
     # disabled
 end
 
+function pwdcopy --description 'Copy the current directory to the clipboard using OSC 52'
+    printf '\e]52;c;%s\a' (printf '%s' "$PWD" | base64 | tr -d '\n')
+end
+
 # [Starship]
 starship init fish | source
 
