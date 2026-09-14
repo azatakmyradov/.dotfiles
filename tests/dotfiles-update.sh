@@ -41,6 +41,7 @@ mkdir -p "$SEED/bin" \
     "$SEED/stow/herdr/.local/bin" \
     "$SEED/stow/opencode/.config/opencode" \
     "$SEED/stow/ghostty/.config/ghostty" \
+    "$SEED/stow/vicinae/.config/vicinae" \
     "$SEED/stow/linux/.config" \
     "$HOME_DIR" \
     "$FAKE_BIN"
@@ -51,6 +52,7 @@ printf '#!/bin/sh\n' >"$SEED/stow/herdr/.local/bin/herdr-sessionizer"
 chmod +x "$SEED/stow/herdr/.local/bin/herdr-sessionizer"
 printf 'fixture\n' >"$SEED/stow/opencode/.config/opencode/opencode.jsonc"
 printf 'fixture\n' >"$SEED/stow/ghostty/.config/ghostty/config"
+printf '{}\n' >"$SEED/stow/vicinae/.config/vicinae/settings.json"
 printf 'fixture\n' >"$SEED/stow/linux/.config/linux-fixture"
 
 git init --bare -q "$REMOTE"

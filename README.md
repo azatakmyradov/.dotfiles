@@ -32,7 +32,8 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 | `herdr` | Herdr, Fish, fd, fzf, jq | `herdr` |
 | `tmux` | tmux | `tmux` |
 | `opencode` | None (configuration only) | `opencode` |
-| `desktop` | Ghostty, Helium | `ghostty`, plus `linux` on Linux |
+| `vicinae` | None (configuration only) | `vicinae` |
+| `desktop` | Ghostty, Helium | `ghostty`, `vicinae`, plus `linux` on Linux |
 | `pi` | Pi and `azatakmyradov/pi-setup` | None |
 | `dev` | Neovim, Pi, and `pi-setup` | None |
 | `workstation` | `core` + `herdr` + `desktop` | Combined packages |
@@ -72,6 +73,17 @@ Preview the complete update sequence without pulling, upgrading, or linking:
 Before linking, existing files that would conflict are moved to a timestamped directory under `~/.dotfiles-backups`. The migration only removes the obsolete `~/.local/scripts/tmux-sessionizer` file; it never deletes `~/.local/scripts`.
 
 The OpenCode configuration loads development plugins from `~/personal/opencode-plugins`, which is managed separately from this repository. Generated OpenCode state such as `node_modules`, `service.json`, package manifests, and lockfiles remains local under `~/.config/opencode` and is not managed by Stow.
+
+## Vicinae settings
+
+The `vicinae` package manages `~/.config/vicinae/settings.json` and is included in `desktop`, `workstation`, and `all`. Install Vicinae separately, then link its settings:
+
+```bash
+./bin/dotfiles link vicinae
+./bin/dotfiles doctor vicinae
+```
+
+The settings select the Tokyo Night dark theme and define shortcuts for Ghostty, Helium, clipboard history, and emoji search. Changes made through Vicinae's settings UI may rewrite this file.
 
 ## Pi setup
 
@@ -141,6 +153,7 @@ stow/herdr/                  Herdr config and sessionizer
 stow/tmux/                   Optional tmux fallback
 stow/opencode/               OpenCode global and TUI configuration
 stow/ghostty/                Ghostty config
+stow/vicinae/                Vicinae settings
 stow/linux/                  Niri and XKB config
 ```
 

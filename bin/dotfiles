@@ -22,7 +22,7 @@ Commands:
   doctor [target]   Check dependencies and deployed configuration
 
 Targets:
-  core, herdr, tmux, opencode, desktop, pi, dev, workstation, all
+  core, herdr, tmux, opencode, vicinae, desktop, pi, dev, workstation, all
   ghostty and linux may also be linked directly.
 
 Examples:
@@ -71,17 +71,18 @@ features_for() {
         herdr) printf '%s\n' herdr ;;
         tmux) printf '%s\n' tmux ;;
         opencode) printf '%s\n' opencode ;;
+        vicinae) printf '%s\n' vicinae ;;
         desktop)
-            printf '%s\n' ghostty
+            printf '%s\n' ghostty vicinae
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         pi|dev) ;;
         workstation)
-            printf '%s\n' core herdr opencode ghostty
+            printf '%s\n' core herdr opencode ghostty vicinae
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         all)
-            printf '%s\n' core herdr tmux opencode ghostty
+            printf '%s\n' core herdr tmux opencode ghostty vicinae
             [[ "$(uname -s)" == Linux ]] && printf '%s\n' linux
             ;;
         ghostty) printf '%s\n' "$1" ;;
@@ -96,7 +97,7 @@ features_for() {
 feature_list() {
     local feature
     case "$1" in
-        core|herdr|tmux|opencode|desktop|pi|dev|workstation|all|ghostty|linux) ;;
+        core|herdr|tmux|opencode|vicinae|desktop|pi|dev|workstation|all|ghostty|linux) ;;
         *) fail "unknown target: $1" ;;
     esac
     if [[ "$1" == linux && "$(uname -s)" != Linux ]]; then
@@ -303,7 +304,7 @@ install_dependencies() {
                     core) add_unique stow; add_unique fish; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique herdr ;;
                     tmux) add_unique stow; add_unique tmux ;;
-                    opencode|ghostty|linux) add_unique stow ;;
+                    opencode|vicinae|ghostty|linux) add_unique stow ;;
                 esac
             done
             if [[ "$target" == dev || "$target" == all ]]; then
@@ -324,7 +325,7 @@ install_dependencies() {
                     core) add_unique stow; add_unique fish; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique curl ;;
                     tmux) add_unique stow; add_unique tmux ;;
-                    opencode|ghostty|linux) add_unique stow ;;
+                    opencode|vicinae|ghostty|linux) add_unique stow ;;
                 esac
             done
             if [[ "$target" == dev || "$target" == all ]]; then
