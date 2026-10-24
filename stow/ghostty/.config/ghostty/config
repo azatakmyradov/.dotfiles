@@ -8,6 +8,7 @@ window-theme = system
 window-padding-x = 14
 window-padding-y = 14
 window-padding-balance = true
+unfocused-split-opacity = 1
 confirm-close-surface=false
 resize-overlay = never
 gtk-toolbar-style = flat

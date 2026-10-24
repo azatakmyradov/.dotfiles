@@ -18,8 +18,20 @@
    "providers": {
       "applications": {
          "entrypoints": {
+            "com.microsoft.Outlook": {
+               "shortcut": "super+control+alt+shift+M"
+            },
             "com.mitchellh.ghostty": {
                "shortcut": "super+control+alt+shift+T"
+            },
+            "com.openai.codex": {
+               "shortcut": "super+control+alt+shift+C"
+            },
+            "com.tinyspeck.slackmacgap": {
+               "shortcut": "super+control+alt+shift+S"
+            },
+            "local.t3code.orchestration-v2": {
+               "shortcut": "super+control+alt+shift+A"
             },
             "net.imput.helium": {
                "shortcut": "super+control+alt+shift+B"
@@ -37,6 +49,13 @@
          "entrypoints": {
             "search-emojis": {
                "shortcut": "super+control+SPACE"
+            }
+         }
+      },
+      "macos-settings": {
+         "entrypoints": {
+            "com.apple.NetworkExtensionSettingsUI.NESettingsUIExtension": {
+               "shortcut": "super+control+alt+shift+("
             }
          }
       }

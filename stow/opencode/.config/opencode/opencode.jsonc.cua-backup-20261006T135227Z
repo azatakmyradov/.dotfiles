@@ -1,0 +1,46 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"update": "notify",
+	"plugins": [
+		// "@azatakmyradov/opencode-workflows-plugin",
+		// {
+		// 	"package": "@azatakmyradov/opencode-external-subagents-plugin",
+		// 	"options": {
+		// 		"claudePath": "/Users/azatakmyradov/.local/bin/claude",
+		// 		"codexPath": "/Users/azatakmyradov/.vite-plus/bin/codex",
+		// 		"allowDangerous": true,
+		// 		"enabledAgents": ["claude-code", "codex-cli"]
+		// 	}
+		// },
+		// "@azatakmyradov/opencode-mcp-toggle-plugin",
+		// "@azatakmyradov/opencode-recap-plugin",
+		// "@azatakmyradov/opencode-save-md-plugin",
+		// "@azatakmyradov/opencode-git-plugin"
+	],
+	"agents": {
+		"plan": {
+			"disabled": true
+		}
+	},
+	"mcp": {
+		"servers": {
+			"x3": {
+				"type": "local",
+				"command": [
+					"x3",
+					"mcp",
+					"--enable-dangerous-ops"
+				]
+      },
+      "atlassian": {
+        "type": "remote",
+        "url": "https://mcp.atlassian.com/v2/mcp"
+      }
+    },
+    "executor": {
+      "type": "remote",
+      "url": "https://executor.vynx.uk/mcp",
+      "enabled": true
+    }
+	}
+}
