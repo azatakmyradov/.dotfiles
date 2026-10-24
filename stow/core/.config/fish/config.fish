@@ -21,6 +21,11 @@ function fish_greeting
     # disabled
 end
 
+# A blank line before each prompt; Starship's add_newline is off for ble.sh in bash.
+function __prompt_spacer --on-event fish_prompt
+    echo
+end
+
 function pwdcopy --description 'Copy the current directory to the clipboard using OSC 52'
     printf '\e]52;c;%s\a' (printf '%s' "$PWD" | base64 | tr -d '\n')
 end

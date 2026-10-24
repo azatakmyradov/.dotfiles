@@ -210,6 +210,32 @@ install_herdr_linux() {
     find_herdr_binary >/dev/null 2>&1 || fail 'Herdr installation completed but no executable was found'
 }
 
+# ble.sh is not packaged for Homebrew, so install its prebuilt nightly. Update it later with `ble-update`.
+install_blesh() {
+    local workdir bash_bin
+    [[ -f "$HOME/.local/share/blesh/ble.sh" ]] && return
+    if ((DRY_RUN)); then
+        printf '+ curl -fsSL https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly.tar.xz -o <temporary-file>\n'
+        printf '+ bash <extracted>/ble.sh --install %s\n' "$HOME/.local/share"
+        return
+    fi
+
+    bash_bin=$(command -v /opt/homebrew/bin/bash bash | head -n 1)
+    workdir=$(mktemp -d "${TMPDIR:-/tmp}/blesh-install.XXXXXX")
+    log_command curl -fsSL https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly.tar.xz -o "$workdir/ble.tar.xz"
+    if ! curl -fsSL https://github.com/akinomyoga/ble.sh/releases/download/nightly/ble-nightly.tar.xz -o "$workdir/ble.tar.xz" ||
+        ! tar -xJf "$workdir/ble.tar.xz" -C "$workdir"; then
+        rm -rf "$workdir"
+        fail 'could not download ble.sh'
+    fi
+    log_command "$bash_bin" "$workdir/ble-nightly/ble.sh" --install "$HOME/.local/share"
+    if ! "$bash_bin" "$workdir/ble-nightly/ble.sh" --install "$HOME/.local/share"; then
+        rm -rf "$workdir"
+        fail 'the ble.sh installer failed'
+    fi
+    rm -rf "$workdir"
+}
+
 find_pi_binary() {
     local npm_prefix
     if command -v pi >/dev/null 2>&1; then
@@ -301,7 +327,7 @@ install_dependencies() {
             ensure_brew
             for feature in ${FEATURES[@]+"${FEATURES[@]}"}; do
                 case "$feature" in
-                    core) add_unique stow; add_unique fish; add_unique starship ;;
+                    core) add_unique stow; add_unique bash; add_unique bash-completion@2; add_unique fzf; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique herdr ;;
                     tmux) add_unique stow; add_unique tmux ;;
                     opencode|vicinae|ghostty|linux) add_unique stow ;;
@@ -322,7 +348,8 @@ install_dependencies() {
             command -v pacman >/dev/null 2>&1 || fail 'Linux installation currently supports Arch Linux (pacman)'
             for feature in ${FEATURES[@]+"${FEATURES[@]}"}; do
                 case "$feature" in
-                    core) add_unique stow; add_unique fish; add_unique starship ;;
+                    # Fish stays the login shell on Linux until the bash migration reaches it.
+                    core) add_unique stow; add_unique fish; add_unique bash-completion; add_unique fzf; add_unique starship ;;
                     herdr) add_unique stow; add_unique fish; add_unique fd; add_unique fzf; add_unique jq; add_unique curl ;;
                     tmux) add_unique stow; add_unique tmux ;;
                     opencode|vicinae|ghostty|linux) add_unique stow ;;
@@ -349,6 +376,9 @@ install_dependencies() {
         *) fail "unsupported operating system: $os" ;;
     esac
 
+    if contains_word core ${FEATURES[@]+"${FEATURES[@]}"}; then
+        install_blesh
+    fi
     if target_includes_pi "$target"; then
         install_pi_cli
         install_pi_setup
@@ -758,7 +788,7 @@ doctor_target() {
         fi
         check_deployed_package "$feature"
         case "$feature" in
-            core) check_command fish; check_command starship ;;
+            core) check_command bash; check_command starship ;;
             tmux) check_command tmux ;;
             ghostty) check_command ghostty ;;
         esac

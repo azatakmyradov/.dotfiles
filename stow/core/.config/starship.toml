@@ -1,6 +1,10 @@
 # Get editor completions based on the config schema
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# ble.sh draws a prompt that starts with a newline twice, so each shell prints the blank
+# line before the prompt itself (~/.config/blesh/init.sh, ~/.bashrc, config.fish).
+add_newline = false
+
 format = """
 $username\
 $hostname\

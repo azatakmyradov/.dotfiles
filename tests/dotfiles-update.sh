@@ -43,8 +43,10 @@ mkdir -p "$SEED/bin" \
     "$SEED/stow/ghostty/.config/ghostty" \
     "$SEED/stow/vicinae/.config/vicinae" \
     "$SEED/stow/linux/.config" \
-    "$HOME_DIR" \
+    "$HOME_DIR/.local/share/blesh" \
     "$FAKE_BIN"
+# An existing ble.sh keeps the installer from downloading it.
+: >"$HOME_DIR/.local/share/blesh/ble.sh"
 cp "$ROOT/bin/dotfiles" "$SEED/bin/dotfiles"
 printf 'fixture\n' >"$SEED/stow/core/.hushlogin"
 printf 'fixture\n' >"$SEED/stow/herdr/.config/herdr/config.toml"
@@ -134,8 +136,8 @@ ln -s "$REPO/stow/core/.hushlogin" "$HOME/.hushlogin"
 output=$("$REPO/bin/dotfiles" update core)
 assert_contains "$output" 'All checks passed.'
 assert_contains "$(<"$COMMAND_LOG")" 'brew update'
-assert_contains "$(<"$COMMAND_LOG")" 'brew install stow fish starship'
-assert_contains "$(<"$COMMAND_LOG")" 'brew upgrade stow fish starship'
+assert_contains "$(<"$COMMAND_LOG")" 'brew install stow bash bash-completion@2 fzf starship'
+assert_contains "$(<"$COMMAND_LOG")" 'brew upgrade stow bash bash-completion@2 fzf starship'
 assert_contains "$(<"$COMMAND_LOG")" "stow --no-folding --restow --dir $REPO/stow --target $HOME core"
 
 # Invalid targets are rejected before Git or package-manager activity.

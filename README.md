@@ -28,7 +28,7 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 
 | Profile | Software | Stow packages |
 | --- | --- | --- |
-| `core` | Fish, Starship | `core` |
+| `core` | Bash, bash-completion, fzf, Starship | `core` |
 | `herdr` | Herdr, Fish, fd, fzf, jq | `herdr` |
 | `tmux` | tmux | `tmux` |
 | `opencode` | None (configuration only) | `opencode` |
@@ -74,6 +74,31 @@ Before linking, existing files that would conflict are moved to a timestamped di
 
 The OpenCode configuration loads development plugins from `~/personal/opencode-plugins`, which is managed separately from this repository. Generated OpenCode state such as `node_modules`, `service.json`, package manifests, and lockfiles remains local under `~/.config/opencode` and is not managed by Stow.
 
+## Shell
+
+Bash is the login shell on macOS; Linux still uses Fish until it is migrated. Install Homebrew's bash, then allow and select it:
+
+```bash
+echo /opt/homebrew/bin/bash | sudo tee -a /etc/shells
+chsh -s /opt/homebrew/bin/bash
+```
+
+| File | Purpose |
+| --- | --- |
+| `~/.config/shell/env.sh` | Environment and `PATH`, shared by every shell. Safe to source repeatedly. |
+| `~/.bash_profile` | Login shells. Loads `.bashrc` when interactive, otherwise only `env.sh`. |
+| `~/.bashrc` | Interactive shells: history, completion, vi mode, fzf, Starship, zoxide. |
+| `~/.config/bash/aliases.bash` | Aliases and small functions. |
+| `~/.inputrc` | Readline settings; vi mode applies to bash only. |
+| `~/.config/blesh/init.sh` | [ble.sh](https://github.com/akinomyoga/ble.sh) settings: fish-like suggestions (accept with → or Ctrl+F), syntax highlighting, and key bindings. |
+| `~/device.sh` | Untracked machine-specific variables, secrets, and aliases. Keep it mode `600`. |
+
+The `core` install downloads ble.sh's prebuilt nightly to `~/.local/share/blesh`, since Homebrew does not package it. Update it with `ble-update`. Without ble.sh, bash falls back to plain readline with the same key bindings.
+
+`tests/shell-env.sh` checks that login, interactive, and nested shells produce the same `PATH` without duplicates.
+
+The Herdr sessionizer remains a Fish script, so the `herdr` profile still installs Fish.
+
 ## Vicinae settings
 
 The `vicinae` package manages `~/.config/vicinae/settings.json` and is included in `desktop`, `workstation`, and `all`. Install Vicinae separately, then link its settings:
@@ -118,22 +143,22 @@ The project picker is installed as `~/.local/bin/herdr-sessionizer` and opened w
 ~/personal ~/work ~/rebelscan ~/notes ~/sagex3
 ```
 
-Override the roots per machine with a colon-separated Fish variable in an untracked local file such as `~/device.fish`:
+Override the roots per machine with a colon-separated variable in the untracked `~/device.sh`:
 
-```fish
-set -gx HERDR_PROJECT_ROOTS "$HOME/personal:$HOME/work:$HOME/notes"
+```bash
+export HERDR_PROJECT_ROOTS="$HOME/personal:$HOME/work:$HOME/notes"
 ```
 
 A root ending in `/*` expands to each matching directory. This is useful when projects are grouped one level deeper, such as `~/x3/team-a/project-a`:
 
-```fish
-set -gx HERDR_PROJECT_ROOTS "$HOME/personal:$HOME/x3/*"
+```bash
+export HERDR_PROJECT_ROOTS="$HOME/personal:$HOME/x3/*"
 ```
 
 If Herdr is installed outside `PATH`, set its executable explicitly:
 
-```fish
-set -gx HERDR_BIN_PATH "$HOME/.local/bin/herdr"
+```bash
+export HERDR_BIN_PATH="$HOME/.local/bin/herdr"
 ```
 
 Check the complete setup with:
@@ -148,7 +173,7 @@ The doctor verifies the required commands, deployed Herdr configuration, executa
 
 ```text
 bin/dotfiles                 Profile installer and Stow frontend
-stow/core/                   Fish, Starship, and basic shell files
+stow/core/                   Bash, Starship, and basic shell files
 stow/herdr/                  Herdr config and sessionizer
 stow/tmux/                   Optional tmux fallback
 stow/opencode/               OpenCode global and TUI configuration

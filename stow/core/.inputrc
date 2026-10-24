@@ -1,0 +1,27 @@
+$include /etc/inputrc
+
+set completion-ignore-case on
+set show-all-if-ambiguous on
+set colored-stats on
+set mark-symlinked-directories on
+
+# Vi mode only for bash, so other readline programs keep their defaults.
+$if Bash
+    set editing-mode vi
+    set keyseq-timeout 10
+    # Beam cursor while inserting, block in normal mode.
+    set show-mode-in-prompt on
+    set vi-ins-mode-string \1\e[6 q\2
+    set vi-cmd-mode-string \1\e[2 q\2
+
+    $if mode=vi
+        set keymap vi-insert
+        "\C-l": clear-screen
+        "\e[A": history-search-backward
+        "\e[B": history-search-forward
+        set keymap vi-command
+        "\C-l": clear-screen
+        "k": history-search-backward
+        "j": history-search-forward
+    $endif
+$endif
