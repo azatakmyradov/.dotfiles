@@ -1,5 +1,8 @@
 status --is-interactive; or return
 
+# [Files]
+alias ll="ls -lah"
+
 # [Laravel]
 alias a="php artisan"
 alias tinker="php artisan tinker"
