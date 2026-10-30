@@ -12,11 +12,35 @@ local function block_cwd(block_id)
   return nil
 end
 
+local sessionizer_label = "rex-sessionizer"
+
+-- The floating layer holding an open sessionizer picker, if any.
+local function sessionizer_layer()
+  local view = rex.session.view{}
+  if view == nil then return nil end
+  for _, window in ipairs(view.windows or {}) do
+    for _, layer in ipairs(window.layers or {}) do
+      for _, block in ipairs(layer.blocks or {}) do
+        if block.label == sessionizer_label then return layer.layer_id end
+      end
+    end
+  end
+  return nil
+end
+
 rex.action{
   name  = "sessionizer",
   title = "Open Project Sessionizer",
   keywords = "project session",
   run   = function(ctx, args)
+    -- Pressing the key again closes the open picker instead of stacking another.
+    local open = sessionizer_layer()
+    if open ~= nil then
+      local _, err = rex.session.close_layer{ layer_id = open }
+      if err ~= nil then error(err, 0) end
+      return
+    end
+
     -- $HOME expands in the pane, which may be on a remote host.
     local command = { "sh", "-c", 'exec "$HOME/.local/bin/rex-sessionizer"' }
     -- Switch sessions in the app that opened the picker.
@@ -29,11 +53,29 @@ rex.action{
       bounds = { 0.1, 0.15, 0.8, 0.7 },
       layout = rex.layout.block{
         flavor  = shell,
+        label   = sessionizer_label,
         options = { command = command },
       },
       focus = true,
     }
     if err ~= nil then error(err, 0) end
+  end,
+}
+
+-- This host's project directories, for a sessionizer running on another host.
+rex.action{
+  name  = "sessionizer_projects",
+  title = "List Sessionizer Projects",
+  run   = function(ctx, args)
+    -- A login shell, so PATH has fd from Homebrew and the like.
+    local r, err = rex.exec(
+      { "sh", "-c", 'exec "${SHELL:-sh}" -lc \'exec "$HOME/.local/bin/rex-sessionizer" --list\'' },
+      { timeout = 20 })
+    if r == nil then error(err, 0) end
+    if not r.ok then error(r.stderr, 0) end
+    local projects = {}
+    for line in r.stdout:gmatch("[^\n]+") do projects[#projects + 1] = line end
+    return { projects = projects }
   end,
 }
 
