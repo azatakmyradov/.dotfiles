@@ -62,23 +62,6 @@ rex.action{
   end,
 }
 
--- This host's project directories, for a sessionizer running on another host.
-rex.action{
-  name  = "sessionizer_projects",
-  title = "List Sessionizer Projects",
-  run   = function(ctx, args)
-    -- A login shell, so PATH has fd from Homebrew and the like.
-    local r, err = rex.exec(
-      { "sh", "-c", 'exec "${SHELL:-sh}" -lc \'exec "$HOME/.local/bin/rex-sessionizer" --list\'' },
-      { timeout = 20 })
-    if r == nil then error(err, 0) end
-    if not r.ok then error(r.stderr, 0) end
-    local projects = {}
-    for line in r.stdout:gmatch("[^\n]+") do projects[#projects + 1] = line end
-    return { projects = projects }
-  end,
-}
-
 rex.action{
   name  = "todo",
   title = "Open Project TODO",
