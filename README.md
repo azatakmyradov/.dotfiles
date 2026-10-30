@@ -30,6 +30,7 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 | --- | --- | --- |
 | `core` | Bash, bash-completion, fzf, Starship | `core` |
 | `herdr` | Herdr, Fish, fd, fzf, jq | `herdr` |
+| `rex` | Bash, fd, fzf, jq (install Rex separately) | `rex` |
 | `tmux` | tmux | `tmux` |
 | `opencode` | None (configuration only) | `opencode` |
 | `vicinae` | None (configuration only) | `vicinae` |
@@ -38,6 +39,8 @@ ln -s "$HOME/.dotfiles/bin/dotfiles" "$HOME/.local/bin/dotfiles"
 | `dev` | Neovim, Pi, and `pi-setup` | None |
 | `workstation` | `core` + `herdr` + `desktop` | Combined packages |
 | `all` | Every profile | Every applicable package |
+
+Rex is a standalone profile alongside Herdr and is not part of `workstation` or `all`.
 
 Tmux remains an optional fallback and is not part of `workstation`:
 
@@ -50,6 +53,7 @@ Tmux remains an optional fallback and is not part of `workstation`:
 ```bash
 ./bin/dotfiles install core       # install dependencies and link files
 ./bin/dotfiles install herdr
+./bin/dotfiles install rex
 ./bin/dotfiles install opencode
 ./bin/dotfiles install pi
 ./bin/dotfiles install workstation
@@ -169,12 +173,40 @@ Check the complete setup with:
 
 The doctor verifies the required commands, deployed Herdr configuration, executable sessionizer, project roots, and `HERDR_BIN_PATH` when set.
 
+## Rex setup
+
+Rex is in beta and is not installed by the profile; install the app first. The `rex` profile links `~/.config/rex/init.lua` and the Bash project picker `~/.local/bin/rex-sessionizer`. Reload Rex after linking:
+
+```bash
+./bin/dotfiles install rex
+rex config reload
+```
+
+`Ctrl+F` (or "Open Project Sessionizer" in the command palette) opens the picker in a floating pane. Picking a project switches to its session, or creates one in that directory. Open projects are marked with `●`.
+
+`init.lua` also mirrors the Herdr and tmux bindings behind the `Ctrl+B` prefix: `h`/`j`/`k`/`l` focus panes, `v`/`%` and `-`/`"` split, `z` zooms, `x` closes a pane, `c`/`n`/`p`/`1`–`9`/`,` manage tabs, `s` switches sessions, `$` renames and `Shift+Q` closes the session, `Shift+D` opens the project TODO, `r` reloads the config, and `Shift+R` enters a resize mode (`h`/`j`/`k`/`l` or arrows, `Shift` for bigger steps, `=` balances, `Enter` or `Escape` leaves). Press `Ctrl+B` twice to send it to the terminal. Run `rex keymap` to list them.
+
+Sessions are matched by label: a project's session is named after its folder, or `parent/name` when two projects share a folder name. Renaming such a session makes the picker open a new one.
+
+The picker searches the same default roots as Herdr. Override them with `REX_PROJECT_ROOTS`, which accepts the same format as `HERDR_PROJECT_ROOTS`:
+
+```bash
+export REX_PROJECT_ROOTS="$HOME/personal:$HOME/x3/*"
+```
+
+If `rex` is outside `PATH`, set `REX_BIN_PATH`. Check the setup with:
+
+```bash
+./bin/dotfiles doctor rex
+```
+
 ## Repository layout
 
 ```text
 bin/dotfiles                 Profile installer and Stow frontend
 stow/core/                   Bash, Starship, and basic shell files
 stow/herdr/                  Herdr config and sessionizer
+stow/rex/                    Rex config and sessionizer
 stow/tmux/                   Optional tmux fallback
 stow/opencode/               OpenCode global and TUI configuration
 stow/ghostty/                Ghostty config

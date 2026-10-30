@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+fail() {
+    printf 'rex-sessionizer: %s\n' "$*" >&2
+    if [[ -t 0 ]]; then
+        read -r -p 'Press Enter to close...'
+    fi
+    exit 1
+}
+
+if [[ -n "${REX_PROJECT_ROOTS:-}" ]]; then
+    IFS=: read -r -a search_roots <<<"$REX_PROJECT_ROOTS"
+else
+    search_roots=("$HOME/personal" "$HOME/work" "$HOME/rebelscan" "$HOME/notes" "$HOME/sagex3" "$HOME/x3/*")
+fi
+
+for cmd in fd fzf jq; do
+    command -v "$cmd" >/dev/null 2>&1 || fail "missing dependency: $cmd"
+done
+
+rex_bin=rex
+if [[ -n "${REX_BIN_PATH:-}" && -x "$REX_BIN_PATH" ]]; then
+    rex_bin=$REX_BIN_PATH
+else
+    command -v rex >/dev/null 2>&1 || fail 'missing dependency: rex'
+fi
+
+# The launching action passes its client so the switch happens in that app window.
+client_args=()
+[[ -n "${REX_CLIENT:-}" ]] && client_args=(-C "$REX_CLIENT")
+
+resolve() {
+    (cd -- "$1" 2>/dev/null && pwd -P)
+}
+
+roots=()
+for root in "${search_roots[@]}"; do
+    case "$root" in
+        '~') root=$HOME ;;
+        '~/'*) root="$HOME/${root#\~/}" ;;
+    esac
+
+    if [[ "$root" == *'/*' ]]; then
+        for match in "${root%/\*}"/*; do
+            [[ -d "$match" ]] && roots+=("$(resolve "$match")")
+        done
+    elif [[ -n "$root" && -d "$root" ]]; then
+        roots+=("$(resolve "$root")")
+    fi
+done
+
+((${#roots[@]} > 0)) || fail 'no search roots found'
+
+projects=()
+while IFS= read -r project; do
+    project=$(resolve "$project") && projects+=("$project")
+done < <(fd --type d --hidden --exclude .git --absolute-path --max-depth 1 --min-depth 1 . "${roots[@]}")
+
+((${#projects[@]} > 0)) || fail 'no project directories found'
+mapfile -t projects < <(printf '%s\n' "${projects[@]}" | sort -u)
+
+# Sessions are matched by label, so a label must identify one project:
+# the folder name, or parent/name when two projects share a folder name.
+declare -A name_count=()
+for project in "${projects[@]}"; do
+    name=${project##*/}
+    name_count[$name]=$((${name_count[$name]:-0} + 1))
+done
+
+label_for() {
+    local project=$1 name=${1##*/} parent
+    parent=${project%/*}
+    parent=${parent##*/}
+    if ((${name_count[$name]} > 1)); then
+        printf '%s/%s' "$parent" "$name"
+    else
+        printf '%s' "$name"
+    fi
+}
+
+sessions=$("$rex_bin" ls --json 2>/dev/null) || fail 'could not list Rex sessions'
+
+declare -A session_ids=()
+while IFS=$'\t' read -r label session_id; do
+    [[ -n "$label" && -z "${session_ids[$label]:-}" ]] && session_ids[$label]=$session_id
+done < <(printf '%s\n' "$sessions" | jq -r '.sessions[]? | select(.label != null) | [.label, .session_id] | @tsv')
+
+rows=()
+for project in "${projects[@]}"; do
+    label=$(label_for "$project")
+    session_id=${session_ids[$label]:--}
+    marker=' '
+    [[ "$session_id" != - ]] && marker='●'
+    parent=${project%/*}
+    rows+=("$(printf '%s %s — %s\t%s\t%s' "$marker" "${project##*/}" "${parent##*/}" "$project" "$session_id")")
+done
+
+selection=$(printf '%s\n' "${rows[@]}" | fzf \
+    --delimiter=$'\t' \
+    --with-nth=1 \
+    --prompt='Project> ' \
+    --layout=reverse \
+    --border=rounded \
+    --no-multi)
+
+[[ -n "$selection" ]] || exit 0
+
+IFS=$'\t' read -r _ project session_id <<<"$selection"
+[[ -n "$project" && -n "$session_id" ]] || fail 'invalid picker selection'
+
+if [[ "$session_id" == - ]]; then
+    created=$("$rex_bin" new "$(label_for "$project")" -c "$project" --json) \
+        || fail "could not create session: $project"
+    session_id=$(printf '%s\n' "$created" | jq -er '.session_id') \
+        || fail "could not read the new session: $project"
+fi
+
+"$rex_bin" ${client_args[@]+"${client_args[@]}"} do session.select session_id="$session_id" >/dev/null \
+    || fail "could not switch to session: $project"
