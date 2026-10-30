@@ -17,10 +17,12 @@ rex.action{
   title = "Open Project Sessionizer",
   keywords = "project session",
   run   = function(ctx, args)
-    local command = { os.getenv("HOME") .. "/.local/bin/rex-sessionizer" }
+    -- $HOME expands in the pane, which may be on a remote host.
+    local command = { "sh", "-c", 'exec "$HOME/.local/bin/rex-sessionizer"' }
     -- Switch sessions in the app that opened the picker.
     if ctx.client_id ~= nil then
-      command = { "env", "REX_CLIENT=" .. ctx.client_id, command[1] }
+      table.insert(command, 1, "REX_CLIENT=" .. ctx.client_id)
+      table.insert(command, 1, "env")
     end
 
     local _, err = rex.session.new_layer{
